@@ -1,5 +1,5 @@
 import React from "react";
-import { StyleSheet, FlatList } from "react-native";
+import { StyleSheet, FlatList, Pressable } from "react-native";
 import {
   Avatar,
   Button,
@@ -23,8 +23,14 @@ import Coupon from "@/components/coupon";
 // C O N S T A N T S
 import { GAP } from "@/constants/Dimensions";
 import { formatNumber } from "@/utils/numbers";
+import { router } from "expo-router";
 
 const index = () => {
+  const _navigate_to_view_all_community_tasks = () =>
+    router.push("/(authenticated-stack)/community-tasks/listing");
+  const _navigate_to_view_all_coupons = () =>
+    router.push("/(authenticated-stack)/coupons/listing");
+
   return (
     <React.Fragment>
       <ScreenWrapper>
@@ -32,9 +38,11 @@ const index = () => {
           <YStack gap={GAP * 0.5}>
             <XStack px={GAP} justifyContent="space-between" alignItems="center">
               <H5 textTransform="uppercase">Coupons</H5>
-              <H6 textTransform="uppercase" textDecorationLine="underline">
-                View all
-              </H6>
+              <Pressable onPress={_navigate_to_view_all_coupons}>
+                <H6 textTransform="uppercase" textDecorationLine="underline">
+                  View all
+                </H6>
+              </Pressable>
             </XStack>
             <FlatList
               horizontal
@@ -50,9 +58,11 @@ const index = () => {
           <YStack gap={GAP * 0.5}>
             <XStack px={GAP} justifyContent="space-between" alignItems="center">
               <H5 textTransform="uppercase">Community Tasks</H5>
-              <H6 textTransform="uppercase" textDecorationLine="underline">
-                View all
-              </H6>
+              <Pressable onPress={_navigate_to_view_all_community_tasks}>
+                <H6 textTransform="uppercase" textDecorationLine="underline">
+                  View all
+                </H6>
+              </Pressable>
             </XStack>
             <FlatList
               horizontal

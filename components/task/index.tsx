@@ -10,7 +10,7 @@ const { width } = Dimensions.get("screen");
 const Task = () => {
   const _navigate_to_dedicated_route = () =>
     router.push({
-      pathname: "/community-task/[id]",
+      pathname: "/community-tasks/[id]",
       params: {
         id: 1,
       },

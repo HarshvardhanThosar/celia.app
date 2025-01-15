@@ -10,7 +10,7 @@ const { width } = Dimensions.get("screen");
 const Coupon = () => {
   const _navigate_to_dedicated_route = () =>
     router.push({
-      pathname: "/coupon/[id]",
+      pathname: "/coupons/[id]",
       params: {
         id: 1,
       },

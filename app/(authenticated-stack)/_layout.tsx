@@ -24,15 +24,27 @@ const AuthenticatedLayout = () => {
         }}
       />
       <Stack.Screen
-        name="community-task/[id]"
+        name="community-tasks/[id]"
         options={{
           title: "Community Task",
         }}
       />
       <Stack.Screen
-        name="coupon/[id]"
+        name="coupons/[id]"
         options={{
           title: "Coupon",
+        }}
+      />
+      <Stack.Screen
+        name="community-tasks/listing"
+        options={{
+          title: "Community Tasks",
+        }}
+      />
+      <Stack.Screen
+        name="coupons/listing"
+        options={{
+          title: "Coupons",
         }}
       />
     </Stack>
