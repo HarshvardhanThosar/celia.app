@@ -1,3 +1,4 @@
+import Theme from "@/context/theme.context";
 import { BlurView } from "expo-blur";
 import React from "react";
 import { StyleSheet, Text, View, ViewStyle } from "react-native";
@@ -15,11 +16,12 @@ const AppHeaderBackground = ({
   style,
 }: AppHeaderBackgroundProps) => {
   const insets = useSafeAreaInsets();
+  const { data: theme } = Theme.useTheme() ?? "light";
 
   return (
     <BlurView
       intensity={intensity}
-      tint={tint}
+      tint={tint ?? theme}
       style={[styles.appbar_background, { height: insets.top + 44 }, style]}
     />
   );
@@ -34,6 +36,6 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: "auto",
-    backgroundColor: "rgba(242,242, 242, 0.7)",
+    backgroundColor: "#ecedec80",
   },
 });

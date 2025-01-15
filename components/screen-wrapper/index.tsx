@@ -1,4 +1,5 @@
 import { GAP } from "@/constants/Dimensions";
+import { useThemeColor } from "@/hooks/useThemeColor";
 import React from "react";
 import { Platform, ScrollView, StatusBar, StyleSheet } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -11,6 +12,15 @@ type ScreenWrapperProps = {
 
 const ScreenWrapper = ({ scrollable = true, ...props }: ScreenWrapperProps) => {
   const _children = props.children;
+
+  const background_colors = {
+    light: "#ecedec",
+    dark: "#141513",
+  };
+  const background_color = useThemeColor(
+    { ...background_colors },
+    "background"
+  );
 
   const insets = useSafeAreaInsets();
   const headerHeight = Platform.select({
@@ -31,14 +41,17 @@ const ScreenWrapper = ({ scrollable = true, ...props }: ScreenWrapperProps) => {
   });
 
   const _child = scrollable ? (
-    <ScrollView>
+    <ScrollView style={[{ backgroundColor: background_color }]}>
       <XStack h={transparentHeaderHeight} />
       {_children}
       <XStack h={GAP} />
     </ScrollView>
   ) : (
     <React.Fragment>
-      <XStack h={transparentHeaderHeight} />
+      <XStack
+        h={transparentHeaderHeight}
+        style={[{ backgroundColor: background_color }]}
+      />
       {_children}
       <XStack h={GAP} />
     </React.Fragment>

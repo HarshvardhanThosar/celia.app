@@ -6,6 +6,7 @@ import {
   H1,
   H2,
   H3,
+  H4,
   H5,
   H6,
   Image,
@@ -24,6 +25,51 @@ import { GAP } from "@/constants/Dimensions";
 import { formatNumber } from "@/utils/numbers";
 
 const index = () => {
+  return (
+    <React.Fragment>
+      <ScreenWrapper>
+        <YStack style={styles.screen} gap={GAP * 1.5}>
+          <YStack gap={GAP * 0.5}>
+            <XStack px={GAP} justifyContent="space-between" alignItems="center">
+              <H5 textTransform="uppercase">Coupons</H5>
+              <H6 textTransform="uppercase" textDecorationLine="underline">
+                View all
+              </H6>
+            </XStack>
+            <FlatList
+              horizontal
+              persistentScrollbar
+              showsHorizontalScrollIndicator={false}
+              data={[1, 1, 1, 1, 1, 1]}
+              renderItem={Coupon}
+              ListHeaderComponent={<XStack width={GAP} />}
+              ListFooterComponent={<XStack width={GAP} />}
+              ItemSeparatorComponent={() => <XStack width={GAP} />}
+            />
+          </YStack>
+          <YStack gap={GAP * 0.5}>
+            <XStack px={GAP} justifyContent="space-between" alignItems="center">
+              <H5 textTransform="uppercase">Community Tasks</H5>
+              <H6 textTransform="uppercase" textDecorationLine="underline">
+                View all
+              </H6>
+            </XStack>
+            <FlatList
+              horizontal
+              persistentScrollbar
+              showsHorizontalScrollIndicator={false}
+              data={[1, 1, 1, 1, 1, 1]}
+              renderItem={Task}
+              ListHeaderComponent={<XStack width={GAP} />}
+              ListFooterComponent={<XStack width={GAP} />}
+              ItemSeparatorComponent={() => <XStack width={GAP} />}
+            />
+          </YStack>
+        </YStack>
+      </ScreenWrapper>
+    </React.Fragment>
+  );
+
   return (
     <React.Fragment>
       <ScreenWrapper>
