@@ -29,12 +29,15 @@ const ThemeWrapper = ({ children }: React.PropsWithChildren) => {
   React.useEffect(() => {
     set(color_scheme);
     return;
-  }, []);
+  }, [color_scheme]);
 
   return (
     <React.Fragment>
-      <TamaguiProvider config={tamaguiConfig} defaultTheme={theme ?? "light"}>
-        <ThemeProvider value={theme === "dark" ? DarkTheme : DefaultTheme}>
+      <TamaguiProvider config={tamaguiConfig} defaultTheme={theme as string}>
+        <ThemeProvider
+          // value={theme === "dark" ? DarkTheme : DefaultTheme}v
+          value={DefaultTheme}
+        >
           {children}
         </ThemeProvider>
       </TamaguiProvider>

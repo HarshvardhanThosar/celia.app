@@ -24,6 +24,7 @@ export default {
     },
     plugins: [
       "expo-router",
+      "@logrocket/react-native",
       [
         "expo-splash-screen",
         {

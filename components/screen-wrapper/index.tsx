@@ -15,7 +15,7 @@ const ScreenWrapper = ({ scrollable = true, ...props }: ScreenWrapperProps) => {
 
   const background_colors = {
     light: "#ecedec",
-    dark: "#141513",
+    dark: "#22231f",
   };
   const background_color = useThemeColor(
     { ...background_colors },

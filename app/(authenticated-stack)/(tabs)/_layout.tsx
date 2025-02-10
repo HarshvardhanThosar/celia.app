@@ -5,15 +5,28 @@ import AppHeaderBackground from "@/components/app-header-background";
 // I C O N S
 import Octicons from "@expo/vector-icons/Octicons";
 import { Avatar } from "tamagui";
+import { useThemeColor } from "@/hooks/useThemeColor";
 
 const TabsLayout = () => {
+  const background_colors = {
+    light: "#ecedec",
+    dark: "#22231f",
+  };
+  const background_color = useThemeColor(
+    { ...background_colors },
+    "background"
+  );
+
   return (
     <Tabs
+      initialRouteName="create-community-task"
       screenOptions={{
         headerShown: true,
         headerTransparent: true,
         headerBackground: () => <AppHeaderBackground intensity={25} />,
         headerShadowVisible: false,
+        tabBarActiveBackgroundColor: background_color,
+        tabBarInactiveBackgroundColor: background_color,
       }}
     >
       <Tabs.Screen

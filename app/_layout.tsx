@@ -11,6 +11,8 @@ import Theme from "@/context/theme.context";
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
+import LogRocket from "@logrocket/react-native";
+
 export default function RootLayout() {
   const [loaded] = useFonts({
     AbrilFatface: require("../assets/fonts/AbrilFatface-Regular.ttf"),
@@ -19,6 +21,12 @@ export default function RootLayout() {
   });
 
   React.useEffect(() => {
+    LogRocket.init("rtyd56/celia-community-applcation");
+    LogRocket.identify("123", {
+      name: "Harshvardhan Thosar",
+      email: "harshvardhanthosar@gmail.com",
+      subscriptionType: "pro",
+    });
     if (loaded) {
       SplashScreen.hideAsync();
     }
@@ -31,8 +39,8 @@ export default function RootLayout() {
   return (
     <Theme.Provider>
       <Auth.Provider>
-        <Slot />
         <StatusBar style="auto" />
+        <Slot />
       </Auth.Provider>
     </Theme.Provider>
   );
