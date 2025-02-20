@@ -1,17 +1,24 @@
 export default {
   expo: {
     name: "celia.app",
-    slug: "celia.app",
+    slug: "celia-app",
     version: "1.0.0",
     orientation: "portrait",
     icon: "./assets/images/icon.png",
     scheme: "myapp",
     userInterfaceStyle: "automatic",
     newArchEnabled: true,
+    extra: {
+      eas: {
+        projectId: "3cb90f92-d2b3-454e-bd2e-9e98f50c5a48",
+      },
+    },
     ios: {
       supportsTablet: true,
+      bundleIdentifier: "com.celia.app",
     },
     android: {
+      package: "com.celia.app",
       adaptiveIcon: {
         foregroundImage: "./assets/images/adaptive-icon.png",
         backgroundColor: "#ffffff",
@@ -24,7 +31,6 @@ export default {
     },
     plugins: [
       "expo-router",
-      "@logrocket/react-native",
       [
         "expo-splash-screen",
         {

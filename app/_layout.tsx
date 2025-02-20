@@ -1,4 +1,5 @@
 import React from "react";
+// import * as Sentry from "@sentry/react-native";
 import { useFonts } from "expo-font";
 import { Slot } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
@@ -11,9 +12,26 @@ import Theme from "@/context/theme.context";
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
-import LogRocket from "@logrocket/react-native";
+// try {
+//   Sentry.init({
+//     dsn: "https://d00c06a14e0e6e589d1746cab0e13029@o4508796282929152.ingest.de.sentry.io/4508796285288528",
+//     _experiments: {
+//       replaysSessionSampleRate: 0.1,
+//       replaysOnErrorSampleRate: 1.0,
+//     },
+//     integrations: [
+//       Sentry.mobileReplayIntegration({
+//         maskAllText: true,
+//         maskAllImages: true,
+//         maskAllVectors: true,
+//       }),
+//     ],
+//   });
+// } catch (error) {
+//   console.error(error);
+// }
 
-export default function RootLayout() {
+function RootLayout() {
   const [loaded] = useFonts({
     AbrilFatface: require("../assets/fonts/AbrilFatface-Regular.ttf"),
     Inter: require("@tamagui/font-inter/otf/Inter-Medium.otf"),
@@ -21,12 +39,6 @@ export default function RootLayout() {
   });
 
   React.useEffect(() => {
-    LogRocket.init("rtyd56/celia-community-applcation");
-    LogRocket.identify("123", {
-      name: "Harshvardhan Thosar",
-      email: "harshvardhanthosar@gmail.com",
-      subscriptionType: "pro",
-    });
     if (loaded) {
       SplashScreen.hideAsync();
     }
@@ -45,3 +57,6 @@ export default function RootLayout() {
     </Theme.Provider>
   );
 }
+
+export default RootLayout;
+// export default Sentry.wrap(RootLayout);

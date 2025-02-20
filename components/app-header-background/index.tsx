@@ -36,7 +36,7 @@ const AppHeaderBackground = ({
         { height: insets.top + 56, backgroundColor: background_color },
         style,
       ]}
-      experimentalBlurMethod="dimezisBlurView"
+      // experimentalBlurMethod="dimezisBlurView"
     />
   );
 };
