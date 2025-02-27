@@ -6,7 +6,6 @@ import {
   H1,
   H2,
   H3,
-  H4,
   H5,
   H6,
   Image,
@@ -98,7 +97,7 @@ const index = () => {
                 Welcome to
               </H5>
               <H1
-                color="#c5a57d"
+                color="#  "
                 fontWeight="500"
                 style={{
                   fontFamily: "AbrilFatface",

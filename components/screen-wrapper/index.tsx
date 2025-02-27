@@ -1,18 +1,22 @@
 import { GAP } from "@/constants/Dimensions";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import React from "react";
-import { Platform, ScrollView, StatusBar, StyleSheet } from "react-native";
+import {
+  Platform,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  ViewProps,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { XStack, YStack } from "tamagui";
 
 type ScreenWrapperProps = {
   children: React.JSX.Element;
   scrollable?: boolean;
-};
+} & ViewProps;
 
 const ScreenWrapper = ({ scrollable = true, ...props }: ScreenWrapperProps) => {
-  const _children = props.children;
-
   const background_colors = {
     light: "#ecedec",
     dark: "#22231f",
@@ -40,24 +44,24 @@ const ScreenWrapper = ({ scrollable = true, ...props }: ScreenWrapperProps) => {
     windows: insets.top + headerHeight,
   });
 
-  const _child = scrollable ? (
-    <ScrollView style={[{ backgroundColor: background_color }]}>
+  return (
+    <ScrollView
+      style={[
+        { backgroundColor: background_color },
+        styles.screen,
+        props.style,
+      ]}
+      scrollEnabled={!!scrollable}
+      keyboardDismissMode="on-drag"
+      keyboardShouldPersistTaps="always"
+      automaticallyAdjustContentInsets
+      automaticallyAdjustKeyboardInsets
+    >
       <XStack h={transparentHeaderHeight} />
-      {_children}
+      {props.children}
       <XStack h={GAP} />
     </ScrollView>
-  ) : (
-    <React.Fragment>
-      <XStack
-        h={transparentHeaderHeight}
-        style={[{ backgroundColor: background_color }]}
-      />
-      {_children}
-      <XStack h={GAP} />
-    </React.Fragment>
   );
-
-  return <YStack style={styles.screen}>{_child}</YStack>;
 };
 
 export default ScreenWrapper;

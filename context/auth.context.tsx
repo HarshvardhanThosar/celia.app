@@ -19,7 +19,6 @@ const AuthWrapper = ({ children }: React.PropsWithChildren) => {
   const router = useRouter();
 
   React.useEffect(() => {
-    set({ email: "", name: "", role: "" });
     const is_accessing_authenticated_routes =
       route_segments[0] === "(authenticated-stack)";
 
@@ -27,7 +26,7 @@ const AuthWrapper = ({ children }: React.PropsWithChildren) => {
       route_segments[0] === "(unauthenticated-stack)";
 
     if (user == undefined && is_accessing_authenticated_routes) {
-      router.replace("/"); // login page
+      router.replace("/");
     } else if (user && is_accessing_unauthenticated_routes) {
       router.replace("/(authenticated-stack)/(tabs)/home");
     }
