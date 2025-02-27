@@ -19,8 +19,8 @@ const AppHeaderBackground = ({
   const insets = useSafeAreaInsets();
   const { data: theme } = Theme.useTheme() ?? "light";
   const background_colors = {
-    light: "#ecedec80",
-    dark: "#22231f00",
+    light: "#F4F7F580",
+    dark: "#26261A00",
   };
   const background_color = useThemeColor(
     { ...background_colors },

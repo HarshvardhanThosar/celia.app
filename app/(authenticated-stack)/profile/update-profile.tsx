@@ -1,14 +1,14 @@
 import React from "react";
-import { Dimensions, StyleSheet } from "react-native";
+import { StyleSheet } from "react-native";
 import ScreenWrapper from "@/components/screen-wrapper";
 import { GAP } from "@/constants/Dimensions";
-import { YStack, H1, H5 } from "tamagui";
+import { YStack, H1, H5, H2 } from "tamagui";
 
 const disclaimer = () => {
   return (
     <ScreenWrapper>
       <YStack style={styles.screen} gap={GAP} px={GAP}>
-        <H1>Disclaimer.</H1>
+        <H2>Disclaimer.</H2>
         <H5 textAlign="justify">
           This application is part of a research study aimed at evaluating and
           improving its features to enhance{" "}

@@ -9,6 +9,7 @@ import {
   H5,
   Input,
   Label,
+  Separator,
   Spinner,
   View,
   XStack,
@@ -20,6 +21,7 @@ import { useForm, Controller, SubmitHandler } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import { GAP } from "@/constants/Dimensions";
+import apis from "@/apis";
 
 // 📌 **Updated Validation Schema**
 const schema = yup
@@ -32,17 +34,15 @@ const schema = yup
         /^[a-zA-Z0-9_-]+$/,
         "Only letters, numbers, _ and - are allowed!"
       ),
-    password: yup
-      .string()
-      .required("Password is required!")
-      .min(8, "Password must be at least 8 characters!")
-      .matches(/[A-Z]/, "Password must contain at least one uppercase letter!")
-      .matches(/[a-z]/, "Password must contain at least one lowercase letter!")
-      .matches(/[0-9]/, "Password must contain at least one number!")
-      .matches(
-        /[@$!%*?&#]/,
-        "Password must contain at least one special character!"
-      ),
+    password: yup.string().required("Password is required!"),
+    // .min(8, "Password must be at least 8 characters!")
+    // .matches(/[A-Z]/, "Password must contain at least one uppercase letter!")
+    // .matches(/[a-z]/, "Password must contain at least one lowercase letter!")
+    // .matches(/[0-9]/, "Password must contain at least one number!")
+    // .matches(
+    //   /[@$!%*?&#]/,
+    //   "Password must contain at least one special character!"
+    // ),
   })
   .required();
 
@@ -74,7 +74,17 @@ const login = () => {
     isSubmitting || isLoading || isValidating || !isValid || !isDirty;
 
   const onSubmit: SubmitHandler<FormData> = async (data) => {
-    console.log(JSON.stringify(data, null, 2));
+    const { username, password } = data;
+
+    try {
+      const _response = await apis.login_using_username_and_password({
+        username,
+        password,
+      });
+      console.log(_response.data);
+    } catch (error) {
+      console.error(JSON.stringify(error, null, 2));
+    }
   };
 
   return (
@@ -90,7 +100,8 @@ const login = () => {
                   <Label>Username or email</Label>
                   <Input
                     autoComplete="username"
-                    placeholder="Enter your username"
+                    autoCapitalize="none"
+                    placeholder="Enter your username or email"
                     textTransform="lowercase"
                     onChangeText={onChange}
                     onBlur={onBlur}
@@ -158,13 +169,14 @@ const login = () => {
             <H5 textDecorationLine="underline">Register</H5>
           </Link>
         </XStack>
-        <XStack alignItems="center">
-          <H5>
-            Read the{" "}
-            <Link href="/disclaimer">
-              <H5 textDecorationLine="underline">disclaimer</H5>
-            </Link>
-          </H5>
+        <XStack alignItems="center" justifyContent="space-between">
+          <Link href="/terms">
+            <H5 textDecorationLine="underline">Terms and Conditions</H5>
+          </Link>
+          <Separator vertical h="$2" />
+          <Link href="/disclaimer">
+            <H5 textDecorationLine="underline">Disclaimer</H5>
+          </Link>
         </XStack>
       </YStack>
     </ScreenWrapper>

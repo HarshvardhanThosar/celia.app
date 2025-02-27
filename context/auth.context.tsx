@@ -19,6 +19,7 @@ const AuthWrapper = ({ children }: React.PropsWithChildren) => {
   const router = useRouter();
 
   React.useEffect(() => {
+    // set({});
     const is_accessing_authenticated_routes =
       route_segments[0] === "(authenticated-stack)";
 

@@ -61,7 +61,7 @@ mixpanel.init();
 
 function RootLayout() {
   const systemTheme = Appearance.getColorScheme() ?? "light";
-  const [theme, setTheme] = React.useState<ColorSchemeName>(systemTheme);
+  const [_, setTheme] = React.useState<ColorSchemeName>(systemTheme);
   const [loaded] = useFonts({
     AbrilFatface: require("../assets/fonts/AbrilFatface-Regular.ttf"),
     Inter: require("@tamagui/font-inter/otf/Inter-Medium.otf"),

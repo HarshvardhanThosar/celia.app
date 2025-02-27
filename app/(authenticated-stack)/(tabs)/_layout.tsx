@@ -9,8 +9,8 @@ import { useThemeColor } from "@/hooks/useThemeColor";
 
 const TabsLayout = () => {
   const background_colors = {
-    light: "#ecedec",
-    dark: "#22231f",
+    light: "#F4F7F5",
+    dark: "#26261A",
   };
   const background_color = useThemeColor(
     { ...background_colors },
