@@ -24,6 +24,7 @@ import {
   NUMBER_OF_PARTICIPANTS_OPTIONS,
   CATEGORY_MASTER,
 } from "@/constants/Validations";
+import DateTimePicker from "@/components/DatePicker";
 
 const schema = yup
   .object({
@@ -70,6 +71,7 @@ const index = () => {
       <ScreenWrapper scrollable>
         <YStack style={styles.screen} gap={GAP * 1.5} px={GAP}>
           <Form onSubmit={handleSubmit(onSubmit)} gap={GAP}>
+            <DateTimePicker />
             <Controller
               control={control}
               rules={{

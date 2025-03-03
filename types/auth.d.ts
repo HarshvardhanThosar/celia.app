@@ -1,8 +1,6 @@
-export type User = {
-  role: string;
-  name: string;
-  email: string;
-};
+import { AuthProfileType } from "./apis";
+
+export type User = AuthProfileType;
 
 export type AuthContextType = {
   user?: User;

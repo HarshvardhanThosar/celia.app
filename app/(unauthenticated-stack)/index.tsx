@@ -22,6 +22,12 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import { GAP } from "@/constants/Dimensions";
 import apis from "@/apis";
+import {
+  authenticate_instance,
+  unauthenticate_instance,
+} from "@/apis/instance";
+import Auth from "@/context/auth.context";
+import storage, { STORAGE_KEYS } from "@/utils/storage";
 
 // 📌 **Updated Validation Schema**
 const schema = yup
@@ -29,11 +35,11 @@ const schema = yup
     username: yup
       .string()
       .required("Username is required!")
-      .min(4, "Username must be at least 4 characters!")
-      .matches(
-        /^[a-zA-Z0-9_-]+$/,
-        "Only letters, numbers, _ and - are allowed!"
-      ),
+      .min(4, "Username must be at least 4 characters!"),
+    // .matches(
+    //   /^[a-zA-Z0-9_-]+$/,
+    //   "Only letters, numbers, _ and - are allowed!"
+    // )
     password: yup.string().required("Password is required!"),
     // .min(8, "Password must be at least 8 characters!")
     // .matches(/[A-Z]/, "Password must contain at least one uppercase letter!")
@@ -47,14 +53,14 @@ const schema = yup
   .required();
 
 type FormData = yup.InferType<typeof schema>;
-const height = Dimensions.get("screen").height;
 
 const login = () => {
+  const { set, data } = Auth.useAuth();
   const [secureTextEntry, setSecureTextEntry] = React.useState<boolean>(true);
   const form = useForm({
     defaultValues: {
-      username: "",
-      password: "",
+      username: "harshvardhanthosar@gmail.com",
+      password: "password",
     },
     resolver: yupResolver(schema),
     mode: "onChange",
@@ -70,18 +76,25 @@ const login = () => {
     formState: { isSubmitting, isLoading, isValidating, isDirty, isValid },
   } = form;
 
-  const _is_disable_submit_button =
-    isSubmitting || isLoading || isValidating || !isValid || !isDirty;
+  // const _is_disable_submit_button =
+  //   isSubmitting || isLoading || isValidating || !isValid || !isDirty;
+
+  const _is_disable_submit_button = false;
 
   const onSubmit: SubmitHandler<FormData> = async (data) => {
     const { username, password } = data;
-
     try {
       const _response = await apis.login_using_username_and_password({
         username,
         password,
       });
-      console.log(_response.data);
+      const _data = _response.data;
+      const _access_token = _data.data.access_token;
+      await storage.set(STORAGE_KEYS.access, _access_token);
+      authenticate_instance(_access_token);
+      const _profile_response = await apis.fetch_logged_in_user_profile();
+      const _profile_data = _profile_response.data.data;
+      set(_profile_data);
     } catch (error) {
       console.error(JSON.stringify(error, null, 2));
     }

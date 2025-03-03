@@ -1,12 +1,18 @@
-import { PaginationQueryParamsType } from "@/types/apis";
-import {
-  instance,
-  authenticate_instance,
-  unauthenticate_instance,
-} from "./instance";
-import axios from "axios";
+import type {
+  FetchLoggedInUserProfileResponseType,
+  LoginWithUsernameAndPasswordResponseType,
+  PaginationQueryParamsType,
+  RefreshTokenResponseType,
+} from "@/types/apis";
+import { instance } from "./instance";
 
 const apis = {
+  /**
+   * Login using username and password
+   * @param data.username string
+   * @param data.password string
+   * @returns
+   */
   login_using_username_and_password: async ({
     password,
     username,
@@ -18,21 +24,36 @@ const apis = {
     _form.append("username", username);
     _form.append("password", password);
 
-    return instance.post(
+    return instance.post<LoginWithUsernameAndPasswordResponseType>(
       "/community/auth/login",
-      // {
-      //   username,
-      //   password,
-      //   grant_type: "password",
-      //   client_id: "",
-      //   client_secret: "",
-      // },
       _form,
       {
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",
         },
       }
+    );
+  },
+
+  /**
+   * Refresh active session
+   * @returns
+   */
+  refresh_token: async () => {
+    return instance.post<RefreshTokenResponseType>("/community/auth/refresh");
+  },
+
+  /**
+   * Logout active session
+   * @returns
+   */
+  logout: async () => {
+    return instance.post("/community/auth/logout");
+  },
+
+  fetch_logged_in_user_profile: async () => {
+    return instance.get<FetchLoggedInUserProfileResponseType>(
+      "/community/profile/"
     );
   },
 
