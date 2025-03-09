@@ -76,10 +76,8 @@ const login = () => {
     formState: { isSubmitting, isLoading, isValidating, isDirty, isValid },
   } = form;
 
-  // const _is_disable_submit_button =
-  //   isSubmitting || isLoading || isValidating || !isValid || !isDirty;
-
-  const _is_disable_submit_button = false;
+  const _is_disable_submit_button =
+    isDirty || isSubmitting || isLoading || isValidating || !isValid;
 
   const onSubmit: SubmitHandler<FormData> = async (data) => {
     const { username, password } = data;
@@ -90,11 +88,13 @@ const login = () => {
       });
       const _data = _response.data;
       const _access_token = _data.data.access_token;
+      const _refresh_token = _data.data.refresh_token;
       await storage.set(STORAGE_KEYS.access, _access_token);
+      await storage.set(STORAGE_KEYS.refresh, _refresh_token);
       authenticate_instance(_access_token);
+
       const _profile_response = await apis.fetch_logged_in_user_profile();
       const _profile_data = _profile_response.data.data;
-      set(_profile_data);
     } catch (error) {
       console.error(JSON.stringify(error, null, 2));
     }

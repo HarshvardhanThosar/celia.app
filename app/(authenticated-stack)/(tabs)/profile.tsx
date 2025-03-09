@@ -28,7 +28,7 @@ const index = () => {
       unauthenticate_instance();
       reset();
     } catch (error) {
-      console.error(error);
+      console.error(JSON.stringify(error, null, 2));
     }
   };
 
@@ -48,14 +48,14 @@ const index = () => {
           <YStack gap={GAP} flex={1}>
             <H5 textTransform="uppercase">Score</H5>
             <XStack alignItems="flex-end">
-              <H2>{user?.score} </H2>
+              <H2>{user?.score ?? 0} </H2>
               <H5>points</H5>
             </XStack>
           </YStack>
           <YStack gap={GAP} flex={1}>
             <H5 textTransform="uppercase">Tasks participated</H5>
             <XStack alignItems="flex-end">
-              <H2>{user?.tasks_participated?.length} </H2>
+              <H2>{user?.tasks_participated?.length ?? 0} </H2>
               <H5>tasks</H5>
             </XStack>
           </YStack>

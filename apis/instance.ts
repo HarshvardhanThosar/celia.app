@@ -1,9 +1,13 @@
 import axios from "axios";
 
 const instance = axios.create({
-  baseURL: `${process.env.EXPO_PUBLIC_API_URL}/api/v1`,
-  timeout: 1000,
+  baseURL: `${process.env.EXPO_PUBLIC_API_URL}`,
+  // baseURL: `${process.env.EXPO_PUBLIC_API_URL}/api/v1`,
+  timeout: 5000,
   withCredentials: true,
+  headers: {
+    "Content-Type": "application/json",
+  },
 });
 
 const authenticate_instance = (token: string) => {

@@ -1,71 +1,124 @@
-import React, { useState, useMemo } from "react";
-import { Pressable } from "react-native";
+import React from "react";
+import { Pressable, Platform } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import { XStack, Input } from "tamagui";
+import { XStack, Input, TamaguiElement, StackProps } from "tamagui";
 import { Calendar, Clock } from "@tamagui/lucide-icons";
 
 type IOSMode = "date" | "time" | "datetime" | "countdown";
 type AndroidMode = "date" | "time";
-interface DatePickerProps {
+
+interface DatePickerProps extends StackProps {
   mode?: IOSMode | AndroidMode;
+  date?: Date;
   minimumDate?: Date;
   maximumDate?: Date;
+  placeholder?: string;
   onChange?: (date: Date) => void;
   onConfirm?: (date: Date) => void;
 }
 
-const CustomDateTimePicker: React.FC<DatePickerProps> = ({
-  mode = "date",
-  minimumDate,
-  maximumDate,
-  onChange,
-  onConfirm,
-}) => {
-  const _default_date = useMemo(() => new Date(), []);
-  const [date, set_date] = useState<Date | null>(null);
-  const [show, set_show] = useState(false);
+const CustomDateTimePicker = React.forwardRef<TamaguiElement, DatePickerProps>(
+  (
+    {
+      mode = "date",
+      date,
+      minimumDate,
+      maximumDate,
+      placeholder,
+      onChange,
+      onConfirm,
+      ...tamaguiProps
+    },
+    ref
+  ) => {
+    const _default_date = React.useMemo(() => new Date(), []);
+    const [selectedDate, setSelectedDate] = React.useState<Date | null>(
+      date || null
+    );
+    const [show, setShow] = React.useState(false);
 
-  const handleConfirm = (event: any, selectedDate?: Date) => {
-    set_show(false);
-    if (selectedDate) {
-      set_date(selectedDate);
-      onConfirm?.(selectedDate);
-      onChange?.(selectedDate);
-    }
-  };
+    // Sync state with external `date` prop
+    React.useEffect(() => {
+      if (date) {
+        setSelectedDate(date);
+      }
+    }, [date]);
 
-  return (
-    <>
-      <Pressable onPress={() => set_show(true)}>
-        <XStack alignItems="center" justifyContent="flex-end">
-          <Input pointerEvents="none" editable={false} flexGrow={1}>
-            {mode === "date" &&
-              (date ? date.toLocaleDateString() : "Select Date")}
-            {mode === "time" &&
-              (date ? date.toLocaleTimeString() : "Select Time")}
-            {mode === "datetime" &&
-              (date ? date.toLocaleString() : "Select Date & Time")}
-          </Input>
+    const handleConfirm = (event: any, selectedDate?: Date) => {
+      setShow(false);
+      if (selectedDate) {
+        setSelectedDate(selectedDate);
+        onConfirm?.(selectedDate);
+        onChange?.(selectedDate);
+      }
+    };
 
-          <XStack paddingRight={10} position="absolute">
-            {mode === "date" && <Calendar />}
-            {mode === "time" && <Clock />}
-            {mode === "datetime" && <Calendar />}
+    return (
+      <XStack
+        ref={ref}
+        {...tamaguiProps}
+        style={{
+          position: "relative",
+        }}
+      >
+        <Pressable onPress={() => setShow(true)} style={{ flex: 1, zIndex: 0 }}>
+          <XStack alignItems="center" justifyContent="flex-end">
+            <Input
+              pointerEvents="none"
+              editable={false}
+              flexGrow={1}
+              value={
+                Platform.OS == "ios" && show
+                  ? ""
+                  : {
+                      date: selectedDate
+                        ? selectedDate.toLocaleDateString()
+                        : placeholder || "Select Date",
+                      time: selectedDate
+                        ? selectedDate.toLocaleTimeString()
+                        : placeholder || "Select Time",
+                      datetime: selectedDate
+                        ? selectedDate.toLocaleString()
+                        : placeholder || "Select Date & Time",
+                      countdown: selectedDate
+                        ? selectedDate.toLocaleTimeString()
+                        : placeholder || "Select Time",
+                    }[mode]
+              }
+            />
+            <XStack paddingRight={10} position="absolute">
+              {mode === "date" && <Calendar />}
+              {mode === "time" && <Clock />}
+              {mode === "datetime" && <Calendar />}
+            </XStack>
           </XStack>
-        </XStack>
-      </Pressable>
+        </Pressable>
 
-      {show && (
-        <DateTimePicker
-          value={date || _default_date}
-          mode={mode === "datetime" ? "date" : mode}
-          minimumDate={minimumDate}
-          maximumDate={maximumDate}
-          onChange={handleConfirm}
-        />
-      )}
-    </>
-  );
-};
+        {show && (
+          <DateTimePicker
+            value={selectedDate || _default_date}
+            mode={mode === "datetime" ? "date" : mode}
+            minimumDate={minimumDate}
+            maximumDate={maximumDate}
+            onChange={handleConfirm}
+            collapsable
+            collapsableChildren
+            display={Platform.select({ ios: "compact", android: "compact" })}
+            textColor=""
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              minHeight: "100%",
+              zIndex: 1,
+              borderRadius: 10,
+              alignItems: "flex-start",
+            }}
+          />
+        )}
+      </XStack>
+    );
+  }
+);
 
 export default CustomDateTimePicker;

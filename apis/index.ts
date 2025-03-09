@@ -1,10 +1,13 @@
 import type {
+  CreateTaskFormType,
   FetchLoggedInUserProfileResponseType,
   LoginWithUsernameAndPasswordResponseType,
+  OptionsResponseBody,
   PaginationQueryParamsType,
   RefreshTokenResponseType,
 } from "@/types/apis";
 import { instance } from "./instance";
+import storage, { STORAGE_KEYS } from "@/utils/storage";
 
 const apis = {
   /**
@@ -20,17 +23,11 @@ const apis = {
     username: string;
     password: string;
   }) => {
-    const _form = new FormData();
-    _form.append("username", username);
-    _form.append("password", password);
-
     return instance.post<LoginWithUsernameAndPasswordResponseType>(
-      "/community/auth/login",
-      _form,
+      "/auth/login",
       {
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-        },
+        username,
+        password,
       }
     );
   },
@@ -39,8 +36,10 @@ const apis = {
    * Refresh active session
    * @returns
    */
-  refresh_token: async () => {
-    return instance.post<RefreshTokenResponseType>("/community/auth/refresh");
+  refresh_token: async (refresh_token: string) => {
+    return instance.post<RefreshTokenResponseType>("/auth/refresh", {
+      refresh_token,
+    });
   },
 
   /**
@@ -48,13 +47,37 @@ const apis = {
    * @returns
    */
   logout: async () => {
-    return instance.post("/community/auth/logout");
+    const refresh_token = await storage.get(STORAGE_KEYS.refresh);
+    return instance.post("/auth/logout", { refresh_token });
   },
 
   fetch_logged_in_user_profile: async () => {
     return instance.get<FetchLoggedInUserProfileResponseType>(
       "/community/profile/"
     );
+  },
+
+  /**
+   * Creates task
+   * @param body
+   * @returns
+   */
+  create_task: async (body: CreateTaskFormType) => {
+    return instance.post("/community/tasks/", body);
+  },
+
+  fetch_task_types: async () => {
+    return instance.get<OptionsResponseBody>("/community/tasks/task-types");
+  },
+
+  fetch_volunteers_count: async () => {
+    return instance.get<OptionsResponseBody>(
+      "/community/tasks/volunteer-count-options"
+    );
+  },
+
+  fetch_hour_options: async () => {
+    return instance.get<OptionsResponseBody>("/community/tasks/hours-options");
   },
 
   /**

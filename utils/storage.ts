@@ -12,7 +12,12 @@ const storage = {
   },
 
   get: async (key: STORAGE_KEYS) => {
-    return await AsyncStorage.getItem(key);
+    const value = await AsyncStorage.getItem(key);
+    return JSON.parse(value ?? "");
+  },
+
+  reset: async (key: STORAGE_KEYS) => {
+    return await AsyncStorage.removeItem(key);
   },
 };
 

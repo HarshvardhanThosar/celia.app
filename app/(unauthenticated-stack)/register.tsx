@@ -74,14 +74,13 @@ const register = () => {
   const {
     control,
     handleSubmit,
-    formState: { isSubmitting, isValid, isDirty },
+    formState: { isSubmitting, isValid, isDirty, isLoading, isValidating },
   } = form;
 
-  const _is_disable_submit_button = isSubmitting || !isValid || !isDirty;
+  const _is_disable_submit_button =
+    isDirty || isSubmitting || isLoading || isValidating || !isValid;
 
-  const onSubmit: SubmitHandler<FormData> = async (data) => {
-    console.log(JSON.stringify(data, null, 2));
-  };
+  const onSubmit: SubmitHandler<FormData> = async (data) => {};
 
   return (
     <ScreenWrapper>

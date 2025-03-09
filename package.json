@@ -54,7 +54,10 @@
     "react-native-webview": "13.12.5",
     "tamagui": "^1.121.10",
     "yup": "^1.6.1",
-    "@react-native-community/datetimepicker": "8.2.0"
+    "@react-native-community/datetimepicker": "8.2.0",
+    "expo-notifications": "~0.29.13",
+    "expo-device": "~7.0.2",
+    "lottie-react-native": "7.1.0"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",

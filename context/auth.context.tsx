@@ -1,4 +1,5 @@
 import React from "react";
+import { Platform, StyleSheet } from "react-native";
 import { User } from "@/types/auth";
 import { useRouter, useSegments } from "expo-router";
 import createGlobalState from "@/context/global";
@@ -10,6 +11,71 @@ import {
   unauthenticate_instance,
 } from "@/apis/instance";
 import storage, { STORAGE_KEYS } from "@/utils/storage";
+import * as Device from "expo-device";
+import * as Notifications from "expo-notifications";
+import Constants from "expo-constants";
+import loading_animation_source from "@/assets/animations/lottie.json";
+import LottieView from "lottie-react-native";
+import { YStack } from "tamagui";
+import { GAP } from "@/constants/Dimensions";
+
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: true,
+    shouldSetBadge: true,
+  }),
+});
+
+function handleRegistrationError(errorMessage: string) {
+  alert(errorMessage);
+  throw new Error(errorMessage);
+}
+
+async function registerForPushNotificationsAsync() {
+  if (Platform.OS === "android") {
+    Notifications.setNotificationChannelAsync("default", {
+      name: "default",
+      importance: Notifications.AndroidImportance.MAX,
+      vibrationPattern: [0, 250, 250, 250],
+      lightColor: "#FF231F7C",
+    });
+  }
+
+  if (Device.isDevice) {
+    const { status: existingStatus } =
+      await Notifications.getPermissionsAsync();
+    let finalStatus = existingStatus;
+    if (existingStatus !== "granted") {
+      const { status } = await Notifications.requestPermissionsAsync();
+      finalStatus = status;
+    }
+    if (finalStatus !== "granted") {
+      handleRegistrationError(
+        "Permission not granted to get push token for push notification!"
+      );
+      return;
+    }
+    const projectId =
+      Constants?.expoConfig?.extra?.eas?.projectId ??
+      Constants?.easConfig?.projectId;
+    if (!projectId) {
+      handleRegistrationError("Project ID not found");
+    }
+    try {
+      const pushTokenString = (
+        await Notifications.getExpoPushTokenAsync({
+          projectId,
+        })
+      ).data;
+      return pushTokenString;
+    } catch (e: unknown) {
+      handleRegistrationError(`${e}`);
+    }
+  } else {
+    handleRegistrationError("Must use physical device for push notifications");
+  }
+}
 
 const useAuth = createGlobalState<User | undefined>(["auth"], undefined);
 
@@ -20,6 +86,8 @@ const Provider = ({ children }: React.PropsWithChildren) => (
 );
 
 const AuthWrapper = ({ children }: React.PropsWithChildren) => {
+  const animation = React.useRef<LottieView>(null);
+  const [show_loader, set_show_loader] = React.useState(true);
   const { data: user, set, reset } = useAuth();
   const route_segments = useSegments();
   const router = useRouter();
@@ -28,21 +96,26 @@ const AuthWrapper = ({ children }: React.PropsWithChildren) => {
     (async () => {
       try {
         const _stored_access_token = await storage.get(STORAGE_KEYS.access);
+        const _stored_refresh_token = await storage.get(STORAGE_KEYS.refresh);
 
-        if (!_stored_access_token) {
+        if (!_stored_access_token || !_stored_refresh_token) {
           reset();
           unauthenticate_instance();
           return;
         }
 
         authenticate_instance(_stored_access_token);
-
-        const _refresh_token_response = await apis.refresh_token();
+        const _refresh_token_response = await apis.refresh_token(
+          _stored_refresh_token
+        );
+        const _refresh_token_response_data = _refresh_token_response.data;
         const _new_access_token =
-          _refresh_token_response.data.data.access_token;
+          _refresh_token_response_data.data.access_token;
+        const _new_refresh_token =
+          _refresh_token_response_data.data.refresh_token;
 
         await storage.set(STORAGE_KEYS.access, _new_access_token);
-
+        await storage.set(STORAGE_KEYS.refresh, _new_refresh_token);
         authenticate_instance(_new_access_token);
 
         const _profile_response = await apis.fetch_logged_in_user_profile();
@@ -54,12 +127,21 @@ const AuthWrapper = ({ children }: React.PropsWithChildren) => {
         );
         reset();
         unauthenticate_instance();
+        await storage.reset(STORAGE_KEYS.access);
+        await storage.reset(STORAGE_KEYS.refresh);
       }
+      set_show_loader(false);
     })();
   }, []);
 
   React.useEffect(() => {
-    set({});
+    // set({});
+    registerForPushNotificationsAsync()
+      .then(() => {
+        if (!user) return;
+        // sendPushNotification(token!);
+      })
+      .catch(console.error);
     const is_accessing_authenticated_routes =
       route_segments[0] === "(authenticated-stack)";
 
@@ -73,9 +155,35 @@ const AuthWrapper = ({ children }: React.PropsWithChildren) => {
     }
   }, [user]);
 
-  return <React.Fragment>{children}</React.Fragment>;
+  return (
+    <React.Fragment>
+      {show_loader ? (
+        <YStack style={styles.screen} gap={GAP} px={GAP}>
+          <LottieView
+            autoPlay
+            ref={animation}
+            style={{
+              width: 150,
+              height: 150,
+            }}
+            source={loading_animation_source}
+          />
+        </YStack>
+      ) : (
+        children
+      )}
+    </React.Fragment>
+  );
 };
 
 const Auth = { Provider, useAuth };
 
 export default Auth;
+
+const styles = StyleSheet.create({
+  screen: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+});

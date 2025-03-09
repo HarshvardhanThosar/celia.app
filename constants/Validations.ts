@@ -1,4 +1,4 @@
-export const MIN_TASK_DESCRIPTION_LENGTH = 0;
+export const MIN_TASK_DESCRIPTION_LENGTH = 10;
 export const MAX_TASK_DESCRIPTION_LENGTH = 500;
 
 function createRange(start: number, end: number) {
