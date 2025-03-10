@@ -4,10 +4,12 @@ import AppHeaderBackground from "@/components/app-header-background";
 
 // I C O N S
 import Octicons from "@expo/vector-icons/Octicons";
-import { Avatar } from "tamagui";
+import { Avatar, Circle, H5, H6 } from "tamagui";
 import { useThemeColor } from "@/hooks/useThemeColor";
+import Auth from "@/context/auth.context";
 
 const TabsLayout = () => {
+  const { data: user } = Auth.useAuth();
   const background_colors = {
     light: "#F4F7F5",
     dark: "#26261A",
@@ -51,12 +53,16 @@ const TabsLayout = () => {
         options={{
           title: "Profile",
           tabBarIcon: ({ size }) => (
-            <Avatar size={size} circular>
+            <Avatar size={size} circular backgroundColor="$background">
               <Avatar.Image
-                accessibilityLabel="Cam"
-                src="https://images.unsplash.com/photo-1548142813-c348350df52b?&w=150&h=150&dpr=2&q=80"
+                accessibilityLabel="Profile"
+                src={user?.profile_image ?? undefined}
               />
-              <Avatar.Fallback backgroundColor="$blue10" />
+              <Avatar.Fallback>
+                <H5>{`${user?.given_name.charAt(0)}${user?.family_name.charAt(
+                  0
+                )}`}</H5>
+              </Avatar.Fallback>
             </Avatar>
           ),
         }}

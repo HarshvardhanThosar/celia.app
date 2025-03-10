@@ -1,4 +1,12 @@
-function formatNumber(number: number): string {
+import { millify } from "millify";
+
+function format_number(number: number): string {
+  if (number > 100000) {
+    return millify(number, {
+      precision: 2, // Keeps 2 decimal places for better readability
+      lowercase: true, // Uses lowercase (e.g., 'k' instead of 'K')
+    });
+  }
   return new Intl.NumberFormat().format(number);
 }
 
@@ -201,7 +209,7 @@ export type Currency =
   | "ZMW" // Zambian Kwacha
   | "ZWL"; // Zimbabwean Dollar
 
-function formatCurrency(
+function format_currency(
   amount: number,
   locale: Locale = "en-US",
   currency: Currency = "EUR"
@@ -214,4 +222,4 @@ function formatCurrency(
   });
 }
 
-export { formatNumber, formatCurrency };
+export { format_number, format_currency };

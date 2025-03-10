@@ -3,17 +3,19 @@ import { useThemeColor } from "@/hooks/useThemeColor";
 import React from "react";
 import {
   Platform,
+  RefreshControlProps,
   ScrollView,
   StatusBar,
   StyleSheet,
   ViewProps,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { XStack, YStack } from "tamagui";
+import { XStack } from "tamagui";
 
 type ScreenWrapperProps = {
   children: React.JSX.Element;
   scrollable?: boolean;
+  refreshControl?: React.ReactElement<RefreshControlProps>;
 } & ViewProps;
 
 const ScreenWrapper = ({ scrollable = true, ...props }: ScreenWrapperProps) => {
@@ -46,6 +48,7 @@ const ScreenWrapper = ({ scrollable = true, ...props }: ScreenWrapperProps) => {
 
   return (
     <ScrollView
+      refreshControl={props?.refreshControl}
       style={[
         { backgroundColor: background_color },
         styles.screen,

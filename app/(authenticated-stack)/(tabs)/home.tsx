@@ -21,7 +21,7 @@ import Coupon from "@/components/coupon";
 
 // C O N S T A N T S
 import { GAP } from "@/constants/Dimensions";
-import { formatNumber } from "@/utils/numbers";
+import { format_number } from "@/utils/numbers";
 import { router } from "expo-router";
 
 const index = () => {
@@ -139,7 +139,7 @@ const index = () => {
                   letterSpacing: 1,
                 }}
               >
-                {formatNumber(4500)} meals
+                {format_number(4500)} meals
               </H3>
             </YStack>
             <YStack gap={GAP / 2}>
@@ -165,7 +165,7 @@ const index = () => {
                   letterSpacing: 1,
                 }}
               >
-                {formatNumber(1303)} tasks
+                {format_number(1303)} tasks
               </H3>
             </YStack>
             <Image
@@ -211,7 +211,7 @@ const index = () => {
                   letterSpacing: 1,
                 }}
               >
-                {formatNumber(45)} tasks
+                {format_number(45)} tasks
               </H3>
             </YStack>
             <Image
