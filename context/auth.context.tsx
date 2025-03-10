@@ -86,11 +86,19 @@ const Provider = ({ children }: React.PropsWithChildren) => (
 );
 
 const AuthWrapper = ({ children }: React.PropsWithChildren) => {
+  const { data: user, set, reset } = useAuth();
   const animation = React.useRef<LottieView>(null);
   const [show_loader, set_show_loader] = React.useState(true);
-  const { data: user, set, reset } = useAuth();
+  const [is_ready, set_is_ready] = React.useState(false);
   const route_segments = useSegments();
   const router = useRouter();
+
+  const logout = React.useCallback(async () => {
+    await storage.reset(STORAGE_KEYS.access);
+    await storage.reset(STORAGE_KEYS.refresh);
+    reset();
+    unauthenticate_instance();
+  }, []);
 
   React.useLayoutEffect(() => {
     (async () => {
@@ -99,8 +107,7 @@ const AuthWrapper = ({ children }: React.PropsWithChildren) => {
         const _stored_refresh_token = await storage.get(STORAGE_KEYS.refresh);
 
         if (!_stored_access_token || !_stored_refresh_token) {
-          reset();
-          unauthenticate_instance();
+          await logout();
           return;
         }
 
@@ -117,43 +124,61 @@ const AuthWrapper = ({ children }: React.PropsWithChildren) => {
         await storage.set(STORAGE_KEYS.access, _new_access_token);
         await storage.set(STORAGE_KEYS.refresh, _new_refresh_token);
         authenticate_instance(_new_access_token);
-
-        const _profile_response = await apis.fetch_logged_in_user_profile();
-        set(_profile_response.data.data);
+        try {
+          const _profile_response = await apis.fetch_logged_in_user_profile();
+          set(_profile_response.data.data);
+        } catch (error) {
+          console.error(
+            "Error fetching profile",
+            JSON.stringify(error, null, 2)
+          );
+        }
       } catch (error) {
-        console.error(
-          "Error fetching profile on load:",
+        await logout();
+        console.log(
+          "Error refreshing tokens fetching",
           JSON.stringify(error, null, 2)
         );
-        reset();
-        unauthenticate_instance();
-        await storage.reset(STORAGE_KEYS.access);
-        await storage.reset(STORAGE_KEYS.refresh);
       }
       set_show_loader(false);
+      set_is_ready(true);
     })();
   }, []);
 
   React.useEffect(() => {
-    // set({});
+    if (!is_ready) return;
     registerForPushNotificationsAsync()
-      .then(() => {
+      .then(async (push_token) => {
         if (!user) return;
-        // sendPushNotification(token!);
+        if (!push_token) return;
+        await apis
+          .register_push_token({ push_token })
+          .catch((error) =>
+            console.error(
+              "Error registering push token",
+              JSON.stringify(error, null, 2)
+            )
+          );
       })
-      .catch(console.error);
+      .catch(async (error) => {
+        await logout();
+        console.error(
+          "Error requesting push token",
+          JSON.stringify(error, null, 2)
+        );
+      });
+
     const is_accessing_authenticated_routes =
       route_segments[0] === "(authenticated-stack)";
-
     const is_accessing_unauthenticated_routes =
       route_segments[0] === "(unauthenticated-stack)";
 
-    if (user == undefined && is_accessing_authenticated_routes) {
+    if (!user && is_accessing_authenticated_routes) {
       router.replace("/");
     } else if (user && is_accessing_unauthenticated_routes) {
       router.replace("/(authenticated-stack)/(tabs)/home");
     }
-  }, [user]);
+  }, [user, is_ready]);
 
   return (
     <React.Fragment>

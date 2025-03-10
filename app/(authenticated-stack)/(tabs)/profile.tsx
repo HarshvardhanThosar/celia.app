@@ -28,7 +28,7 @@ const index = () => {
       unauthenticate_instance();
       reset();
     } catch (error) {
-      console.error(JSON.stringify(error, null, 2));
+      console.error("Error logging out", JSON.stringify(error, null, 2));
     }
   };
 

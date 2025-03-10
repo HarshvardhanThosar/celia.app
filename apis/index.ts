@@ -24,7 +24,7 @@ const apis = {
     password: string;
   }) => {
     return instance.post<LoginWithUsernameAndPasswordResponseType>(
-      "/auth/login",
+      "/community/auth/login",
       {
         username,
         password,
@@ -37,7 +37,7 @@ const apis = {
    * @returns
    */
   refresh_token: async (refresh_token: string) => {
-    return instance.post<RefreshTokenResponseType>("/auth/refresh", {
+    return instance.post<RefreshTokenResponseType>("/community/auth/refresh", {
       refresh_token,
     });
   },
@@ -48,13 +48,28 @@ const apis = {
    */
   logout: async () => {
     const refresh_token = await storage.get(STORAGE_KEYS.refresh);
-    return instance.post("/auth/logout", { refresh_token });
+    return instance.post("/community/auth/logout", { refresh_token });
   },
 
+  /**
+   * Fetch logged in user's profile
+   * @returns
+   */
   fetch_logged_in_user_profile: async () => {
     return instance.get<FetchLoggedInUserProfileResponseType>(
       "/community/profile/"
     );
+  },
+
+  /**
+   * Register push token
+   * @param param.push_token string
+   * @returns
+   */
+  register_push_token: async ({ push_token }: { push_token: string }) => {
+    return await instance.post("/push-token/register", {
+      push_token,
+    });
   },
 
   /**

@@ -157,7 +157,10 @@ const index = () => {
           set_is_loaded(true);
         }
       } catch (error) {
-        console.error(error);
+        console.error(
+          "Error fetching options for create task route",
+          JSON.stringify(error, null, 2)
+        );
       }
     })();
     return () => {
@@ -214,7 +217,7 @@ const index = () => {
       const _response = await apis.create_task(_request_body);
       const _data = _response.data;
     } catch (error) {
-      console.error(JSON.stringify(error, null, 2));
+      console.error("Error creating task", JSON.stringify(error, null, 2));
     }
   };
 

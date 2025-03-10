@@ -95,13 +95,12 @@ export default Task;
 const styles = StyleSheet.create({
   task_container: {
     // dimensions
+    width: "100%",
     maxWidth: (width * 3) / 4,
     // design
     padding: GAP,
     borderWidth: 0.5,
     borderRadius: 10,
-    borderColor: "#dae2df",
-    backgroundColor: "white",
     // display
     gap: GAP,
   },

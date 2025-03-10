@@ -1,6 +1,6 @@
 import "react-native-reanimated";
 import React from "react";
-// import * as Sentry from "@sentry/react-native";
+import * as Sentry from "@sentry/react-native";
 import { useFonts } from "expo-font";
 import { Slot } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
@@ -29,35 +29,35 @@ const mixpanel = new Mixpanel(
 );
 mixpanel.init();
 
-// mixpanel.identify("123");
+mixpanel.identify("123");
 
-// // Identify must be called before properties are set
-// mixpanel.getPeople().set("$name", "Jane Doe");
-// mixpanel.getPeople().set("$email", "jane.doe@example.com");
-// mixpanel.getPeople().set("plan", "Premium");
+// Identify must be called before properties are set
+mixpanel.getPeople().set("$name", "Jane Doe");
+mixpanel.getPeople().set("$email", "jane.doe@example.com");
+mixpanel.getPeople().set("plan", "Premium");
 
-// mixpanel.track("Sign Up", {
-//   "Signup Type": "Referral",
-// });
+mixpanel.track("Sign Up", {
+  "Signup Type": "Referral",
+});
 
-// try {
-//   Sentry.init({
-//     dsn: "https://d00c06a14e0e6e589d1746cab0e13029@o4508796282929152.ingest.de.sentry.io/4508796285288528",
-//     _experiments: {
-//       replaysSessionSampleRate: 0.1,
-//       replaysOnErrorSampleRate: 1.0,
-//     },
-//     integrations: [
-//       Sentry.mobileReplayIntegration({
-//         maskAllText: true,
-//         maskAllImages: true,
-//         maskAllVectors: true,
-//       }),
-//     ],
-//   });
-// } catch (error) {
-//   console.error(error);
-// }
+try {
+  Sentry.init({
+    dsn: "https://d00c06a14e0e6e589d1746cab0e13029@o4508796282929152.ingest.de.sentry.io/4508796285288528",
+    _experiments: {
+      replaysSessionSampleRate: 0.1,
+      replaysOnErrorSampleRate: 1.0,
+    },
+    integrations: [
+      Sentry.mobileReplayIntegration({
+        maskAllText: true,
+        maskAllImages: true,
+        maskAllVectors: true,
+      }),
+    ],
+  });
+} catch (error) {
+  console.error("Error initializing Sentry", JSON.stringify(error, null, 2));
+}
 
 function RootLayout() {
   const systemTheme = Appearance.getColorScheme() ?? "light";

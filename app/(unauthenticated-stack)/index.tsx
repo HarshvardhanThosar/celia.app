@@ -55,7 +55,7 @@ const schema = yup
 type FormData = yup.InferType<typeof schema>;
 
 const login = () => {
-  const { set, data } = Auth.useAuth();
+  const { set } = Auth.useAuth();
   const [secureTextEntry, setSecureTextEntry] = React.useState<boolean>(true);
   const form = useForm({
     defaultValues: {
@@ -92,11 +92,15 @@ const login = () => {
       await storage.set(STORAGE_KEYS.access, _access_token);
       await storage.set(STORAGE_KEYS.refresh, _refresh_token);
       authenticate_instance(_access_token);
-
-      const _profile_response = await apis.fetch_logged_in_user_profile();
-      const _profile_data = _profile_response.data.data;
+      try {
+        const _profile_response = await apis.fetch_logged_in_user_profile();
+        const _profile_data = _profile_response.data.data;
+        set(_profile_data);
+      } catch (error) {
+        console.error("Error fetching profile", JSON.stringify(error, null, 2));
+      }
     } catch (error) {
-      console.error(JSON.stringify(error, null, 2));
+      console.error("Error logging in", JSON.stringify(error, null, 2));
     }
   };
 

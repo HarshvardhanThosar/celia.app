@@ -19,7 +19,6 @@ const TabsLayout = () => {
 
   return (
     <Tabs
-      initialRouteName="create-community-task"
       screenOptions={{
         headerShown: true,
         headerTransparent: true,
