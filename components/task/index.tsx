@@ -18,7 +18,14 @@ const Task = () => {
 
   return (
     <Pressable onPress={_navigate_to_dedicated_route}>
-      <YStack style={styles.task_container}>
+      <YStack
+        style={styles.task_container}
+        borderWidth="$0.25"
+        borderRadius="$6"
+        borderColor="$color"
+        p={GAP}
+        gap={GAP}
+      >
         <XStack justifyContent="space-between" alignItems="center">
           <XStack alignItems="center" gap={10}>
             <Avatar circular size="$4">
@@ -97,11 +104,5 @@ const styles = StyleSheet.create({
     // dimensions
     width: "100%",
     maxWidth: (width * 3) / 4,
-    // design
-    padding: GAP,
-    borderWidth: 0.5,
-    borderRadius: 10,
-    // display
-    gap: GAP,
   },
 });

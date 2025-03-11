@@ -47,6 +47,24 @@ const AuthenticatedLayout = () => {
           title: "Coupons",
         }}
       />
+      <Stack.Screen
+        name="coupons/redeemed-listing"
+        options={{
+          title: "Redeemed Coupons",
+        }}
+      />
+      <Stack.Screen
+        name="community-tasks/created-listing"
+        options={{
+          title: "Your Created Tasks",
+        }}
+      />
+      <Stack.Screen
+        name="community-tasks/participated-listing"
+        options={{
+          title: "Tasks Participated",
+        }}
+      />
     </Stack>
   );
 };

@@ -18,7 +18,14 @@ const Coupon = () => {
 
   return (
     <Pressable onPress={_navigate_to_dedicated_route}>
-      <YStack style={styles.coupon_container}>
+      <YStack
+        style={styles.coupon_container}
+        borderWidth="$0.25"
+        borderRadius="$6"
+        borderColor="$color"
+        p={GAP}
+        gap={GAP}
+      >
         <Image
           aspectRatio={COUPON_CROP_IMAGE_ASPECT_RATIO}
           alt=""
@@ -53,11 +60,5 @@ const styles = StyleSheet.create({
     // dimensions
     width: "100%",
     maxWidth: (width * 3) / 4,
-    // design
-    padding: GAP,
-    borderWidth: 0.5,
-    borderRadius: 10,
-    // display
-    gap: GAP,
   },
 });
