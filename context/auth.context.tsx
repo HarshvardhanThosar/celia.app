@@ -1,12 +1,5 @@
 import React from "react";
-import {
-  Appearance,
-  AppState,
-  AppStateStatus,
-  ColorSchemeName,
-  Platform,
-  StyleSheet,
-} from "react-native";
+import { AppState, AppStateStatus, StyleSheet } from "react-native";
 import { User } from "@/types/auth";
 import { useRouter, useSegments } from "expo-router";
 import createGlobalState from "@/context/global";
@@ -18,9 +11,7 @@ import {
   unauthenticate_instance,
 } from "@/apis/instance";
 import storage, { STORAGE_KEYS } from "@/utils/storage";
-import * as Device from "expo-device";
-import * as Notifications from "expo-notifications";
-import Constants from "expo-constants";
+
 import loading_animation_source from "@/assets/animations/lottie.json";
 import LottieView from "lottie-react-native";
 import { YStack } from "tamagui";
@@ -28,66 +19,6 @@ import { GAP } from "@/constants/Dimensions";
 import Toast, { ToastType } from "@/utils/toasts";
 import mixpanel from "@/services/mixpanel";
 import MixpanelEvents from "@/services/mixpanel-events";
-
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: true,
-    shouldSetBadge: true,
-  }),
-});
-
-function handle_registration_error(errorMessage: string) {
-  alert(errorMessage);
-  throw new Error(errorMessage);
-}
-
-async function register_for_push_notifications_async() {
-  if (Platform.OS === "android") {
-    Notifications.setNotificationChannelAsync("default", {
-      name: "default",
-      importance: Notifications.AndroidImportance.MAX,
-      vibrationPattern: [0, 250, 250, 250],
-      lightColor: "#A5B68D",
-    });
-  }
-
-  if (Device.isDevice) {
-    const { status: existingStatus } =
-      await Notifications.getPermissionsAsync();
-    let finalStatus = existingStatus;
-    if (existingStatus !== "granted") {
-      const { status } = await Notifications.requestPermissionsAsync();
-      finalStatus = status;
-    }
-    if (finalStatus !== "granted") {
-      handle_registration_error(
-        "Permission not granted to get push token for push notification!"
-      );
-      return;
-    }
-    const projectId =
-      Constants?.expoConfig?.extra?.eas?.projectId ??
-      Constants?.easConfig?.projectId;
-    if (!projectId) {
-      handle_registration_error("Project ID not found");
-    }
-    try {
-      const pushTokenString = (
-        await Notifications.getExpoPushTokenAsync({
-          projectId,
-        })
-      ).data;
-      return pushTokenString;
-    } catch (e: unknown) {
-      handle_registration_error(`${e}`);
-    }
-  } else {
-    handle_registration_error(
-      "Must use physical device for push notifications"
-    );
-  }
-}
 
 const useAuth = createGlobalState<User | undefined>(["auth"], undefined);
 
@@ -211,26 +142,6 @@ const AuthWrapper = ({ children }: React.PropsWithChildren) => {
       "change",
       handle_app_state_change
     );
-
-    register_for_push_notifications_async()
-      .then(async (push_token) => {
-        if (!user || !push_token) return;
-        await apis
-          .register_push_token({ push_token })
-          .catch((error) =>
-            console.log(
-              "Error registering push token",
-              JSON.stringify(error, null, 2)
-            )
-          );
-      })
-      .catch(async (error) => {
-        await logout();
-        console.log(
-          "Error requesting push token",
-          JSON.stringify(error, null, 2)
-        );
-      });
 
     const is_accessing_authenticated_routes =
       route_segments[0] === "(authenticated-stack)";

@@ -44,7 +44,7 @@ const SelectInput = ({
       </Select.Trigger>
       <Adapt when="sm" platform="touch">
         <Sheet
-          native={!!props.native}
+          native={true}
           modal
           dismissOnSnapToBottom
           animationConfig={{
@@ -96,11 +96,11 @@ const SelectInput = ({
             <Select.Label>{props.label}</Select.Label>
             {React.useMemo(
               () =>
-                options.map((option, i) => {
+                options.map((option, _index) => {
                   return (
                     <Select.Item
-                      index={i}
-                      key={option.name}
+                      index={_index}
+                      key={option.value}
                       value={option.value}
                     >
                       <Select.ItemText>{option.name}</Select.ItemText>

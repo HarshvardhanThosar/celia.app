@@ -9,7 +9,7 @@ import type {
   RefreshTokenResponseBodyType,
   RegisterNewUserRequestBodyType,
   RegisterNewUserResponseBodyType,
-  RegisterPushToken,
+  RegisterPushTokenRequestBodyType,
 } from "@/types/apis";
 import { instance } from "./instance";
 import storage, { STORAGE_KEYS } from "@/utils/storage";
@@ -99,7 +99,9 @@ const apis = {
    * @param param.push_token string
    * @returns
    */
-  register_push_token: async ({ push_token }: RegisterPushToken) => {
+  register_push_token: async ({
+    push_token,
+  }: RegisterPushTokenRequestBodyType) => {
     return await instance.post("/push-token/register", {
       push_token,
     });

@@ -1,5 +1,5 @@
 import React from "react";
-import { StyleSheet } from "react-native";
+import { Platform, StyleSheet } from "react-native";
 import { Link } from "expo-router";
 import ScreenWrapper from "@/components/screen-wrapper";
 import {
@@ -16,7 +16,9 @@ import {
   YStack,
 } from "tamagui";
 import { Eye, EyeOff } from "@tamagui/lucide-icons"; // Lucide icons for eye toggle
-
+import * as Device from "expo-device";
+import * as Notifications from "expo-notifications";
+import Constants from "expo-constants";
 import { useForm, Controller, SubmitHandler } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
@@ -29,17 +31,68 @@ import Toast, { ToastType } from "@/utils/toasts";
 import mixpanel from "@/services/mixpanel";
 import MixpanelEvents from "@/services/mixpanel-events";
 
-// 📌 **Updated Validation Schema**
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: true,
+    shouldSetBadge: true,
+  }),
+});
+
+function handle_registration_error(errorMessage: string) {
+  alert(errorMessage);
+  throw new Error(errorMessage);
+}
+
+async function register_for_push_notifications_async() {
+  if (Platform.OS === "android") {
+    Notifications.setNotificationChannelAsync("default", {
+      name: "default",
+      importance: Notifications.AndroidImportance.MAX,
+      vibrationPattern: [0, 250, 250, 250],
+      lightColor: "#A5B68D",
+    });
+  }
+
+  if (Device.isDevice) {
+    const { status: existingStatus } =
+      await Notifications.getPermissionsAsync();
+    let finalStatus = existingStatus;
+    if (existingStatus !== "granted") {
+      const { status } = await Notifications.requestPermissionsAsync();
+      finalStatus = status;
+    }
+    if (finalStatus !== "granted") {
+      handle_registration_error(
+        "Permission not granted to get push token for push notification!"
+      );
+      return;
+    }
+    const projectId =
+      Constants?.expoConfig?.extra?.eas?.projectId ??
+      Constants?.easConfig?.projectId;
+    if (!projectId) {
+      handle_registration_error("Project ID not found");
+    }
+    try {
+      const pushTokenString = (
+        await Notifications.getExpoPushTokenAsync({
+          projectId,
+        })
+      ).data;
+      return pushTokenString;
+    } catch (e: unknown) {
+      handle_registration_error(`${e}`);
+    }
+  } else {
+    handle_registration_error(
+      "Must use physical device for push notifications"
+    );
+  }
+}
+
 const schema = yup
   .object({
-    // username: yup
-    //   .string()
-    //   .required("Username is required!")
-    //   .min(4, "Username must be at least 4 characters!")
-    //   .matches(
-    //     /^[a-zA-Z0-9_-]+$/,
-    //     "Only letters, numbers, _ and - are allowed!"
-    //   ),
     username: yup
       .string()
       .email("Invalid email format!")
@@ -61,12 +114,12 @@ const schema = yup
 type FormData = yup.InferType<typeof schema>;
 
 const login = () => {
-  const { set, reset } = Auth.useAuth();
+  const { set } = Auth.useAuth();
   const [secureTextEntry, setSecureTextEntry] = React.useState<boolean>(true);
   const form = useForm({
     defaultValues: {
       username: "harshvardhanthosar@gmail.com",
-      password: "password",
+      password: "P@ssw0rd",
     },
     resolver: yupResolver(schema),
     mode: "onChange",
@@ -110,6 +163,25 @@ const login = () => {
         mixpanel.track(MixpanelEvents.user_login, {
           id: _profile_data._id,
         });
+
+        register_for_push_notifications_async()
+          .then(async (push_token) => {
+            if (!push_token) return;
+            await apis
+              .register_push_token({ push_token })
+              .catch((error) =>
+                console.log(
+                  "Error registering push token",
+                  JSON.stringify(error, null, 2)
+                )
+              );
+          })
+          .catch(async (error) => {
+            console.log(
+              "Error requesting push token",
+              JSON.stringify(error, null, 2)
+            );
+          });
       } catch (error: any) {
         const error_message =
           error?.response?.data?.message ||
@@ -127,10 +199,6 @@ const login = () => {
       console.log(JSON.stringify(error, null, 2));
     }
   };
-
-  React.useLayoutEffect(() => {
-    reset();
-  }, []);
 
   return (
     <ScreenWrapper>

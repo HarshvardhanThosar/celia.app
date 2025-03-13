@@ -41,7 +41,14 @@ export type LoginWithUsernameAndPasswordResponseBodyType = ResponseType<{
   };
 }>;
 
-export type RegisterPushToken = { push_token: string };
+export type RegisterPushTokenRequestBodyType = { push_token: string };
+
+export type RegisterPushTokenRequestBodyTypeResponseBodyType = ResponseType<{
+  _id: string;
+  created_at: string;
+  push_token: string;
+  user_id: UserIdType;
+}>;
 
 export type RefreshTokenRequestBodyType = {
   refresh_token: string;
