@@ -1,5 +1,5 @@
 import React from "react";
-import { Dimensions, StyleSheet } from "react-native";
+import { StyleSheet } from "react-native";
 import ScreenWrapper from "@/components/screen-wrapper";
 import {
   Button,
@@ -19,6 +19,9 @@ import * as yup from "yup";
 import { Eye, EyeOff } from "@tamagui/lucide-icons";
 import { GAP } from "@/constants/Dimensions";
 import { Link } from "expo-router";
+import apis from "@/apis";
+import { router } from "expo-router";
+import Toast, { ToastType } from "@/utils/toasts";
 
 const schema = yup.object({
   firstName: yup.string().required("First name is required!"),
@@ -27,11 +30,6 @@ const schema = yup.object({
     .string()
     .email("Invalid email format!")
     .required("Email is required!"),
-  username: yup
-    .string()
-    .required("Username is required!")
-    .min(4, "Username must be at least 4 characters!")
-    .matches(/^[a-zA-Z0-9_-]+$/, "Only letters, numbers, _ and - are allowed!"),
   password: yup
     .string()
     .required("Password is required!")
@@ -50,18 +48,18 @@ const schema = yup.object({
 });
 
 type FormData = yup.InferType<typeof schema>;
-const height = Dimensions.get("screen").height;
 
 const register = () => {
   const [secureTextEntry, setSecureTextEntry] = React.useState<boolean>(true);
+  const [t_n_c, set_T_n_C] = React.useState<boolean>(false);
   const form = useForm({
     defaultValues: {
-      firstName: "",
-      lastName: "",
-      email: "",
-      username: "",
-      password: "",
-      cpassword: "",
+      firstName: "Harshvardhan",
+      lastName: "Thosar",
+      email: "harshvardhanthosar@gmail.com",
+      // username: "harshvardhanthosar",
+      password: "password",
+      cpassword: "password",
     },
     resolver: yupResolver(schema),
     mode: "onChange",
@@ -80,7 +78,29 @@ const register = () => {
   const _is_disable_submit_button =
     isDirty || isSubmitting || isLoading || isValidating || !isValid;
 
-  const onSubmit: SubmitHandler<FormData> = async (data) => {};
+  const onSubmit: SubmitHandler<FormData> = async (data) => {
+    const { email, firstName, lastName, password } = data;
+    try {
+      const response = await apis.register_a_new_user({
+        email,
+        firstName,
+        lastName,
+        password,
+        // username,
+      });
+      Toast.show(response.data.message, ToastType.SUCCESS);
+      const timeout = setTimeout(function () {
+        router.push("/");
+      }, 500);
+      return () => clearTimeout(timeout);
+    } catch (error: any) {
+      const error_message =
+        error?.response?.data?.message ||
+        error?.message ||
+        "An error occurred!";
+      Toast.show(error_message, ToastType.ERROR);
+    }
+  };
 
   return (
     <ScreenWrapper>
@@ -148,26 +168,6 @@ const register = () => {
               )}
               name="email"
             />
-            {/* <Controller
-              control={control}
-              render={({ field: { onChange, onBlur, value }, fieldState }) => (
-                <YStack>
-                  <Label>Username</Label>
-                  <Input
-                    autoComplete="username-new"
-                    placeholder="Enter your username"
-                    textTransform="lowercase"
-                    onChangeText={onChange}
-                    onBlur={onBlur}
-                    value={value}
-                  />
-                  {fieldState.error && (
-                    <Label color="$red10Dark">{fieldState.error.message}</Label>
-                  )}
-                </YStack>
-              )}
-              name="username"
-            /> */}
             <Controller
               control={control}
               render={({ field: { onChange, onBlur, value }, fieldState }) => (
@@ -205,6 +205,7 @@ const register = () => {
                     {value ? (
                       <View position="absolute" r={0} t={0} b={0}>
                         <Button
+                          chromeless
                           onPress={_toggle_password_visibility}
                           size="$4"
                           p="$3"

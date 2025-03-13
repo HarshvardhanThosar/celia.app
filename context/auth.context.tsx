@@ -1,5 +1,12 @@
 import React from "react";
-import { Platform, StyleSheet } from "react-native";
+import {
+  Appearance,
+  AppState,
+  AppStateStatus,
+  ColorSchemeName,
+  Platform,
+  StyleSheet,
+} from "react-native";
 import { User } from "@/types/auth";
 import { useRouter, useSegments } from "expo-router";
 import createGlobalState from "@/context/global";
@@ -18,6 +25,9 @@ import loading_animation_source from "@/assets/animations/lottie.json";
 import LottieView from "lottie-react-native";
 import { YStack } from "tamagui";
 import { GAP } from "@/constants/Dimensions";
+import Toast, { ToastType } from "@/utils/toasts";
+import mixpanel from "@/services/mixpanel";
+import MixpanelEvents from "@/services/mixpanel-events";
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -27,18 +37,18 @@ Notifications.setNotificationHandler({
   }),
 });
 
-function handleRegistrationError(errorMessage: string) {
+function handle_registration_error(errorMessage: string) {
   alert(errorMessage);
   throw new Error(errorMessage);
 }
 
-async function registerForPushNotificationsAsync() {
+async function register_for_push_notifications_async() {
   if (Platform.OS === "android") {
     Notifications.setNotificationChannelAsync("default", {
       name: "default",
       importance: Notifications.AndroidImportance.MAX,
       vibrationPattern: [0, 250, 250, 250],
-      lightColor: "#FF231F7C",
+      lightColor: "#A5B68D",
     });
   }
 
@@ -51,7 +61,7 @@ async function registerForPushNotificationsAsync() {
       finalStatus = status;
     }
     if (finalStatus !== "granted") {
-      handleRegistrationError(
+      handle_registration_error(
         "Permission not granted to get push token for push notification!"
       );
       return;
@@ -60,7 +70,7 @@ async function registerForPushNotificationsAsync() {
       Constants?.expoConfig?.extra?.eas?.projectId ??
       Constants?.easConfig?.projectId;
     if (!projectId) {
-      handleRegistrationError("Project ID not found");
+      handle_registration_error("Project ID not found");
     }
     try {
       const pushTokenString = (
@@ -70,10 +80,12 @@ async function registerForPushNotificationsAsync() {
       ).data;
       return pushTokenString;
     } catch (e: unknown) {
-      handleRegistrationError(`${e}`);
+      handle_registration_error(`${e}`);
     }
   } else {
-    handleRegistrationError("Must use physical device for push notifications");
+    handle_registration_error(
+      "Must use physical device for push notifications"
+    );
   }
 }
 
@@ -102,43 +114,58 @@ const AuthWrapper = ({ children }: React.PropsWithChildren) => {
 
   React.useLayoutEffect(() => {
     (async () => {
-      try {
-        const _stored_access_token = await storage.get(STORAGE_KEYS.access);
-        const _stored_refresh_token = await storage.get(STORAGE_KEYS.refresh);
+      const _stored_access_token = await storage
+        .get<string>(STORAGE_KEYS.access)
+        .catch(console.log);
+      const _stored_refresh_token = await storage
+        .get<string>(STORAGE_KEYS.refresh)
+        .catch(console.log);
 
-        if (!_stored_access_token || !_stored_refresh_token) {
-          await logout();
-          return;
-        }
-
-        authenticate_instance(_stored_access_token);
-        const _refresh_token_response = await apis.refresh_token(
-          _stored_refresh_token
-        );
-        const _refresh_token_response_data = _refresh_token_response.data;
-        const _new_access_token =
-          _refresh_token_response_data.data.access_token;
-        const _new_refresh_token =
-          _refresh_token_response_data.data.refresh_token;
-
-        await storage.set(STORAGE_KEYS.access, _new_access_token);
-        await storage.set(STORAGE_KEYS.refresh, _new_refresh_token);
-        authenticate_instance(_new_access_token);
+      if (!_stored_access_token || !_stored_refresh_token) {
+        await logout();
+      } else {
         try {
-          const _profile_response = await apis.fetch_logged_in_user_profile();
-          set(_profile_response.data.data);
+          authenticate_instance(_stored_access_token);
+          const _refresh_token_response = await apis.refresh_token(
+            _stored_refresh_token
+          );
+          const _refresh_token_response_data = _refresh_token_response.data;
+          const _new_access_token =
+            _refresh_token_response_data.data.access_token;
+          const _new_refresh_token =
+            _refresh_token_response_data.data.refresh_token;
+
+          await storage.set(STORAGE_KEYS.access, _new_access_token);
+          await storage.set(STORAGE_KEYS.refresh, _new_refresh_token);
+          authenticate_instance(_new_access_token);
+
+          try {
+            const _profile_response = await apis.fetch_logged_in_user_profile();
+            set(_profile_response.data.data);
+
+            mixpanel.identify(_profile_response.data.data._id);
+            mixpanel.getPeople().set("$name", _profile_response.data.data.name);
+            mixpanel
+              .getPeople()
+              .set("$email", _profile_response.data.data.email);
+            mixpanel.track(MixpanelEvents.user_session_start, {
+              id: _profile_response.data.data._id,
+            });
+          } catch (error) {
+            Toast.show("Error fetching your profile!", ToastType.ERROR);
+            console.log(
+              "Error fetching profile",
+              JSON.stringify(error, null, 2)
+            );
+          }
         } catch (error) {
-          console.error(
-            "Error fetching profile",
+          await logout();
+          Toast.show("Your previous session has ended!", ToastType.INFO);
+          console.log(
+            "Error refreshing tokens",
             JSON.stringify(error, null, 2)
           );
         }
-      } catch (error) {
-        await logout();
-        console.log(
-          "Error refreshing tokens fetching",
-          JSON.stringify(error, null, 2)
-        );
       }
       set_show_loader(false);
       set_is_ready(true);
@@ -147,14 +174,51 @@ const AuthWrapper = ({ children }: React.PropsWithChildren) => {
 
   React.useEffect(() => {
     if (!is_ready) return;
-    registerForPushNotificationsAsync()
+
+    const handle_app_state_change = (nextAppState: AppStateStatus) => {
+      switch (nextAppState) {
+        case "active":
+          mixpanel.track(MixpanelEvents.app_active, {
+            id: user?._id,
+          });
+          break;
+        case "background":
+          mixpanel.track(MixpanelEvents.app_background, {
+            id: user?._id,
+          });
+          break;
+        case "inactive":
+          mixpanel.track(MixpanelEvents.app_inactive, {
+            id: user?._id,
+          });
+          break;
+        case "extension":
+          mixpanel.track(MixpanelEvents.app_extension, {
+            id: user?._id,
+          });
+          break;
+        case "unknown":
+          mixpanel.track(MixpanelEvents.app_unknown, {
+            id: user?._id,
+          });
+          break;
+        default:
+          break;
+      }
+    };
+
+    const app_intercation_subscription = AppState.addEventListener(
+      "change",
+      handle_app_state_change
+    );
+
+    register_for_push_notifications_async()
       .then(async (push_token) => {
-        if (!user) return;
-        if (!push_token) return;
+        if (!user || !push_token) return;
         await apis
           .register_push_token({ push_token })
           .catch((error) =>
-            console.error(
+            console.log(
               "Error registering push token",
               JSON.stringify(error, null, 2)
             )
@@ -162,7 +226,7 @@ const AuthWrapper = ({ children }: React.PropsWithChildren) => {
       })
       .catch(async (error) => {
         await logout();
-        console.error(
+        console.log(
           "Error requesting push token",
           JSON.stringify(error, null, 2)
         );
@@ -173,12 +237,18 @@ const AuthWrapper = ({ children }: React.PropsWithChildren) => {
     const is_accessing_unauthenticated_routes =
       route_segments[0] === "(unauthenticated-stack)";
 
-    if (!user && is_accessing_authenticated_routes) {
-      router.replace("/");
-    } else if (user && is_accessing_unauthenticated_routes) {
-      router.replace("/(authenticated-stack)/(tabs)/home");
+    if (is_ready) {
+      if (!user && is_accessing_authenticated_routes) {
+        router.replace("/"); // Redirect to login
+      } else if (user && is_accessing_unauthenticated_routes) {
+        router.replace("/(authenticated-stack)/(tabs)/home"); // Redirect to home
+      }
     }
-  }, [user, is_ready]);
+
+    return () => {
+      app_intercation_subscription.remove();
+    };
+  }, [user, is_ready, route_segments]);
 
   return (
     <React.Fragment>
@@ -200,7 +270,6 @@ const AuthWrapper = ({ children }: React.PropsWithChildren) => {
     </React.Fragment>
   );
 };
-
 const Auth = { Provider, useAuth };
 
 export default Auth;

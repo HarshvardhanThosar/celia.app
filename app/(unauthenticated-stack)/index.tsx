@@ -1,5 +1,5 @@
 import React from "react";
-import { Dimensions, StyleSheet } from "react-native";
+import { StyleSheet } from "react-native";
 import { Link } from "expo-router";
 import ScreenWrapper from "@/components/screen-wrapper";
 import {
@@ -22,40 +22,46 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import { GAP } from "@/constants/Dimensions";
 import apis from "@/apis";
-import {
-  authenticate_instance,
-  unauthenticate_instance,
-} from "@/apis/instance";
+import { authenticate_instance } from "@/apis/instance";
 import Auth from "@/context/auth.context";
 import storage, { STORAGE_KEYS } from "@/utils/storage";
+import Toast, { ToastType } from "@/utils/toasts";
+import mixpanel from "@/services/mixpanel";
+import MixpanelEvents from "@/services/mixpanel-events";
 
 // 📌 **Updated Validation Schema**
 const schema = yup
   .object({
+    // username: yup
+    //   .string()
+    //   .required("Username is required!")
+    //   .min(4, "Username must be at least 4 characters!")
+    //   .matches(
+    //     /^[a-zA-Z0-9_-]+$/,
+    //     "Only letters, numbers, _ and - are allowed!"
+    //   ),
     username: yup
       .string()
-      .required("Username is required!")
-      .min(4, "Username must be at least 4 characters!"),
-    // .matches(
-    //   /^[a-zA-Z0-9_-]+$/,
-    //   "Only letters, numbers, _ and - are allowed!"
-    // )
-    password: yup.string().required("Password is required!"),
-    // .min(8, "Password must be at least 8 characters!")
-    // .matches(/[A-Z]/, "Password must contain at least one uppercase letter!")
-    // .matches(/[a-z]/, "Password must contain at least one lowercase letter!")
-    // .matches(/[0-9]/, "Password must contain at least one number!")
-    // .matches(
-    //   /[@$!%*?&#]/,
-    //   "Password must contain at least one special character!"
-    // ),
+      .email("Invalid email format!")
+      .required("Email is required!"),
+    password: yup
+      .string()
+      .required("Password is required!")
+      .min(8, "Password must be at least 8 characters!")
+      .matches(/[A-Z]/, "Password must contain at least one uppercase letter!")
+      .matches(/[a-z]/, "Password must contain at least one lowercase letter!")
+      .matches(/[0-9]/, "Password must contain at least one number!")
+      .matches(
+        /[@$!%*?&#]/,
+        "Password must contain at least one special character!"
+      ),
   })
   .required();
 
 type FormData = yup.InferType<typeof schema>;
 
 const login = () => {
-  const { set } = Auth.useAuth();
+  const { set, reset } = Auth.useAuth();
   const [secureTextEntry, setSecureTextEntry] = React.useState<boolean>(true);
   const form = useForm({
     defaultValues: {
@@ -95,14 +101,36 @@ const login = () => {
       try {
         const _profile_response = await apis.fetch_logged_in_user_profile();
         const _profile_data = _profile_response.data.data;
+        Toast.show(_data.message, ToastType.SUCCESS);
         set(_profile_data);
-      } catch (error) {
-        console.error("Error fetching profile", JSON.stringify(error, null, 2));
+
+        mixpanel.identify(_profile_data._id);
+        mixpanel.getPeople().set("$name", _profile_data.name);
+        mixpanel.getPeople().set("$email", _profile_data.email);
+        mixpanel.track(MixpanelEvents.user_login, {
+          id: _profile_data._id,
+        });
+      } catch (error: any) {
+        const error_message =
+          error?.response?.data?.message ||
+          error?.message ||
+          "An error occurred!";
+        Toast.show(error_message, ToastType.ERROR);
+        console.log(JSON.stringify(error, null, 2));
       }
-    } catch (error) {
-      console.error("Error logging in", JSON.stringify(error, null, 2));
+    } catch (error: any) {
+      const error_message =
+        error?.response?.data?.message ||
+        error?.message ||
+        "An error occurred!";
+      Toast.show(error_message, ToastType.ERROR);
+      console.log(JSON.stringify(error, null, 2));
     }
   };
+
+  React.useLayoutEffect(() => {
+    reset();
+  }, []);
 
   return (
     <ScreenWrapper>
@@ -114,11 +142,11 @@ const login = () => {
               control={control}
               render={({ field: { onChange, onBlur, value }, fieldState }) => (
                 <YStack>
-                  <Label>Username or email</Label>
+                  <Label>Email</Label>
                   <Input
                     autoComplete="username"
                     autoCapitalize="none"
-                    placeholder="Enter your username or email"
+                    placeholder="Enter your email"
                     textTransform="lowercase"
                     onChangeText={onChange}
                     onBlur={onBlur}

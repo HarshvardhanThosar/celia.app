@@ -2,7 +2,16 @@ import React from "react";
 import { RefreshControl, StyleSheet } from "react-native";
 import ScreenWrapper from "@/components/screen-wrapper";
 import Auth from "@/context/auth.context";
-import { YStack, XStack, H3, H5, Button, Spinner, Paragraph } from "tamagui";
+import {
+  YStack,
+  XStack,
+  H3,
+  H5,
+  Button,
+  Spinner,
+  Paragraph,
+  H6,
+} from "tamagui";
 import { GAP } from "@/constants/Dimensions";
 import { PowerOff, SquareArrowOutUpRight } from "@tamagui/lucide-icons";
 import apis from "@/apis";
@@ -12,8 +21,9 @@ import { Link } from "expo-router";
 
 const index = () => {
   const [is_refreshing, set_is_refresh] = React.useState(false);
-  const { data: user, set, reset, isLoading, refetch } = Auth.useAuth();
+  const { data: user, set, reset, isLoading } = Auth.useAuth();
 
+  const _id = React.useMemo(() => user?._id, [user]);
   const _score = React.useMemo(() => format_number(user?.score ?? 0), [user]);
   const _tasks_participated_count = React.useMemo(
     () => format_number(user?.tasks_participated?.length ?? 0),
@@ -23,19 +33,15 @@ const index = () => {
     () => format_number(user?.tasks_created?.length ?? 0),
     [user]
   );
-  const _coupons_count = React.useMemo(
-    () => format_number(user?.coupons?.length ?? 0),
-    [user]
-  );
 
   const _logout = React.useCallback(async () => {
     try {
       await apis.logout();
-      unauthenticate_instance();
-      reset();
     } catch (error) {
-      console.error("Error logging out", JSON.stringify(error, null, 2));
+      console.log("Error logging out", JSON.stringify(error, null, 2));
     }
+    unauthenticate_instance();
+    reset();
   }, []);
 
   const _fetch_user_profile = React.useCallback(async () => {
@@ -61,7 +67,7 @@ const index = () => {
   return (
     <ScreenWrapper refreshControl={_refreshControl} scrollable>
       <YStack style={styles.screen} px={GAP} gap={GAP * 1.5}>
-        <XStack alignItems="flex-end">
+        <XStack alignItems="center">
           <YStack flex={1}>
             <H5 textTransform="uppercase">Hi, </H5>
             <H3>{user?.name}</H3>
@@ -70,22 +76,35 @@ const index = () => {
             {isLoading ? () => <Spinner /> : <PowerOff size="$1" />}
           </Button>
         </XStack>
+        <YStack>
+          <Paragraph>
+            We invite you to participate in an optional survey to share your
+            experience with the application and task scoring mechanism. Your
+            feedback is invaluable in helping improve this research. To maintain
+            anonymity, please use the following ID when completing the survey.
+            If you wish to participate, click the link below. Your input is
+            greatly appreciated!
+          </Paragraph>
+          <Paragraph>Note:</Paragraph>
+          <H6>{_id}</H6>
+        </YStack>
 
-        <YStack gap={GAP}>
+        <Paragraph>
+          Earn score by completing community tasks, which can be redeemed for
+          retail items.
+        </Paragraph>
+        <XStack gap={GAP}>
           <YStack
             borderColor="$color"
             borderWidth="$0.25"
             borderRadius="$6"
             p={GAP}
+            flex={1}
           >
-            <H5 textTransform="uppercase">Your score</H5>
+            <H5 textTransform="uppercase">score</H5>
             <H3 pt={GAP} pb={GAP / 2}>
               {_score} <H5>points</H5>
             </H3>
-            <Paragraph>
-              Earn points by completing community tasks, which can be redeemed
-              for retail items.
-            </Paragraph>
           </YStack>
 
           <YStack
@@ -93,12 +112,14 @@ const index = () => {
             borderWidth="$0.25"
             borderRadius="$6"
             p={GAP}
+            flex={1}
           >
             <XStack>
               <YStack flex={1}>
                 <H5 textTransform="uppercase">Tasks participated</H5>
                 <H3 pt={GAP}>
-                  {_tasks_participated_count} <H5>tasks</H5>
+                  {_tasks_participated_count}
+                  <H5> tasks</H5>
                 </H3>
               </YStack>
               <Link href="/(authenticated-stack)/community-tasks/participated-listing">
@@ -106,20 +127,25 @@ const index = () => {
               </Link>
             </XStack>
           </YStack>
+        </XStack>
+
+        <XStack gap={GAP}>
           <YStack
             py={GAP}
             borderColor="$color"
             borderWidth="$0.25"
             borderRadius="$6"
             p={GAP}
+            flex={1}
           >
             <XStack>
               <YStack flex={1}>
                 <H5 textTransform="uppercase" flex={1}>
-                  Your created tasks
+                  created tasks
                 </H5>
                 <H3 pt={GAP}>
-                  {_tasks_created_count} <H5>tasks created</H5>
+                  {_tasks_created_count}
+                  <H5> tasks</H5>
                 </H3>
               </YStack>
               <Link href="/(authenticated-stack)/community-tasks/created-listing">
@@ -127,17 +153,19 @@ const index = () => {
               </Link>
             </XStack>
           </YStack>
+
           <YStack
             py={GAP}
             borderColor="$color"
             borderWidth="$0.25"
             borderRadius="$6"
             p={GAP}
+            flex={1}
           >
             <XStack>
               <YStack flex={1}>
                 <H5 textTransform="uppercase" flex={1}>
-                  Your coupons redeemed
+                  coupons redeemed
                 </H5>
                 <H3 pt={GAP}>
                   {_tasks_created_count} <H5>coupons redeemed</H5>
@@ -152,7 +180,7 @@ const index = () => {
               </Link>
             </XStack>
           </YStack>
-        </YStack>
+        </XStack>
       </YStack>
     </ScreenWrapper>
   );

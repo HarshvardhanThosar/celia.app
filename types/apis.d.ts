@@ -1,44 +1,91 @@
-type PaginationQueryParamsType = { skip: number; limit: number };
+export type UserIdType = string;
 
-type LoginWithUsernameAndPasswordResponseType = {
-  data: {
-    access_token: string;
-    refresh_token: string;
-    scope: string;
-    token_type: string;
-    user: {
-      email: string;
-      emailVerified: boolean;
-      enabled: boolean;
-      firstName: string;
-      id: string;
-      lastName: string;
-      username: string;
-    };
-  };
-  message: string;
-  statusCode: number;
+export type PaginationQueryParamsType = { skip: number; limit: number };
+
+export type RegisterNewUserRequestBodyType = {
+  // username: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  password: string;
 };
 
-type RefreshTokenResponseType = LoginWithUsernameAndPasswordResponseType;
-
-type AuthProfileType = {
-  _id: string;
-  coupons: string[];
+export type RegisterNewUserResponseBodyType = ResponseType<{
+  id: UserIdType;
+  username: string;
+  firstName: string;
+  lastName: string;
   email: string;
-  email_verified: boolean;
+  emailVerified: boolean;
+  enabled: true;
+}>;
+
+export type LoginWithUsernameAndPasswordRequestBodyType = {
+  username: string;
+  password: string;
+};
+
+export type LoginWithUsernameAndPasswordResponseBodyType = ResponseType<{
+  access_token: string;
+  refresh_token: string;
+  scope: string;
+  token_type: string;
+  user: {
+    email: string;
+    emailVerified: boolean;
+    enabled: boolean;
+    firstName: string;
+    id: string;
+    lastName: string;
+    username: string;
+  };
+}>;
+
+export type RegisterPushToken = { push_token: string };
+
+export type RefreshTokenRequestBodyType = {
+  refresh_token: string;
+};
+
+export type LogoutRequestBodyType = {
+  refresh_token: string;
+};
+
+export type ResponseType<D, M = undefined> = {
+  data: D;
+  message: string;
+  status: number;
+  metadata?: M;
+};
+
+export type FetchLoggedInUserProfileResponseBodyType =
+  ResponseType<AuthProfileType>;
+
+export type RefreshTokenResponseBodyType = ResponseType<{
+  access_token: string;
+  refresh_token: string;
+  token_type: "Bearer";
+}>;
+
+export type AuthProfileType = {
+  _id: string;
+  coupons: [];
+  created_at: string;
+  email: string;
+  email_verified: true;
   family_name: string;
   given_name: string;
   name: string;
   preferred_username: string;
   profile_image: null;
   score: int;
-  sub: string;
-  tasks_created: string[];
-  tasks_participated: string[];
+  tasks_created: [];
+  tasks_participated: [];
+  updated_at: string;
+  wallet_id: null;
 };
 
-type FormDataType<T> = {
+export type FormDataType<T> = {
   [K in keyof T]: T[K] extends File[]
     ? FileList | File[]
     : T[K] extends Date
@@ -46,19 +93,19 @@ type FormDataType<T> = {
     : T[K];
 };
 
-type OptionBody = {
+export type OptionBody = {
   name: string;
   value: stirng;
 };
 
-type OptionsResponseBody = {
+export type OptionsResponseBody = {
   status: number;
   message: string;
   data: OptionBody[];
   metadata?: null;
 };
 
-type CreateTaskFormType = {
+export type CreateTaskFormType = {
   description: string;
   volunteers_required: number;
   hours_required_per_day: number;
@@ -68,23 +115,8 @@ type CreateTaskFormType = {
   is_remote?: boolean;
 };
 
-type CreateTaskRequestBodyType = FormDataType<CreateTaskFormType>;
+export type CreateTaskRequestBodyType = FormDataType<CreateTaskFormType>;
 
-type FetchLoggedInUserProfileResponseType = {
-  data: AuthProfileType;
-  message: string;
-  metadata?: any;
-  status: int;
-};
-
-export {
-  AuthProfileType,
-  PaginationQueryParamsType,
-  LoginWithUsernameAndPasswordResponseType,
-  CreateTaskFormType,
-  CreateTaskRequestBodyType,
-  OptionBody,
-  OptionsResponseBody,
-  RefreshTokenResponseType,
-  FetchLoggedInUserProfileResponseType,
-};
+export type CreateTaskResponseBodyType = ResponseType<{
+  _id: string;
+}>;

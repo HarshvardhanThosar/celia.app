@@ -1,15 +1,48 @@
 import type {
   CreateTaskFormType,
-  FetchLoggedInUserProfileResponseType,
-  LoginWithUsernameAndPasswordResponseType,
+  CreateTaskResponseBodyType,
+  FetchLoggedInUserProfileResponseBodyType,
+  LoginWithUsernameAndPasswordRequestBodyType,
+  LoginWithUsernameAndPasswordResponseBodyType,
   OptionsResponseBody,
   PaginationQueryParamsType,
-  RefreshTokenResponseType,
+  RefreshTokenResponseBodyType,
+  RegisterNewUserRequestBodyType,
+  RegisterNewUserResponseBodyType,
+  RegisterPushToken,
 } from "@/types/apis";
 import { instance } from "./instance";
 import storage, { STORAGE_KEYS } from "@/utils/storage";
 
 const apis = {
+  /**
+   * Register a new user
+   * @param param.email string
+   * @param param.firstName string
+   * @param param.lastName string
+   * @param param.username string
+   * @param param.password string
+   * @param param.cpassword string
+   * @returns
+   */
+  register_a_new_user: async ({
+    email,
+    firstName,
+    lastName,
+    password,
+  }: RegisterNewUserRequestBodyType) => {
+    return instance.post<RegisterNewUserResponseBodyType>(
+      "/community/auth/register",
+      {
+        email,
+        firstName,
+        lastName,
+        password,
+        username: email,
+      }
+    );
+  },
+
   /**
    * Login using username and password
    * @param data.username string
@@ -19,11 +52,8 @@ const apis = {
   login_using_username_and_password: async ({
     password,
     username,
-  }: {
-    username: string;
-    password: string;
-  }) => {
-    return instance.post<LoginWithUsernameAndPasswordResponseType>(
+  }: LoginWithUsernameAndPasswordRequestBodyType) => {
+    return instance.post<LoginWithUsernameAndPasswordResponseBodyType>(
       "/community/auth/login",
       {
         username,
@@ -37,9 +67,12 @@ const apis = {
    * @returns
    */
   refresh_token: async (refresh_token: string) => {
-    return instance.post<RefreshTokenResponseType>("/community/auth/refresh", {
-      refresh_token,
-    });
+    return instance.post<RefreshTokenResponseBodyType>(
+      "/community/auth/refresh",
+      {
+        refresh_token,
+      }
+    );
   },
 
   /**
@@ -56,7 +89,7 @@ const apis = {
    * @returns
    */
   fetch_logged_in_user_profile: async () => {
-    return instance.get<FetchLoggedInUserProfileResponseType>(
+    return instance.get<FetchLoggedInUserProfileResponseBodyType>(
       "/community/profile/"
     );
   },
@@ -66,7 +99,7 @@ const apis = {
    * @param param.push_token string
    * @returns
    */
-  register_push_token: async ({ push_token }: { push_token: string }) => {
+  register_push_token: async ({ push_token }: RegisterPushToken) => {
     return await instance.post("/push-token/register", {
       push_token,
     });
@@ -78,7 +111,7 @@ const apis = {
    * @returns
    */
   create_task: async (body: CreateTaskFormType) => {
-    return instance.post("/community/tasks/", body);
+    return instance.post<CreateTaskResponseBodyType>("/community/tasks/", body);
   },
 
   fetch_task_types: async () => {

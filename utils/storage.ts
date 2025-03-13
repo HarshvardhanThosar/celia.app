@@ -11,9 +11,9 @@ const storage = {
     await AsyncStorage.setItem(key, string);
   },
 
-  get: async (key: STORAGE_KEYS) => {
+  get: async <T>(key: STORAGE_KEYS): Promise<T | null> => {
     const value = await AsyncStorage.getItem(key);
-    return JSON.parse(value ?? "");
+    return JSON.parse(value ?? "undefined") as T;
   },
 
   reset: async (key: STORAGE_KEYS) => {

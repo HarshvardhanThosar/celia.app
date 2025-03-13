@@ -10,7 +10,7 @@ import {
   ViewProps,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { XStack } from "tamagui";
+import { XStack, YStack } from "tamagui";
 
 type ScreenWrapperProps = {
   children: React.JSX.Element;

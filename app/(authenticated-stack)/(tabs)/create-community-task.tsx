@@ -14,6 +14,7 @@ import {
 import { useForm, Controller, SubmitHandler } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
+import Toast, { ToastType } from "@/utils/toasts";
 
 // C O M P O N E N T S
 import ScreenWrapper from "@/components/screen-wrapper";
@@ -26,6 +27,7 @@ import DateTimePicker from "@/components/DatePicker";
 import CheckboxWithLabel from "@/components/CheckboxWithLabel";
 import apis from "@/apis";
 import { OptionBody } from "@/types/apis";
+import { router } from "expo-router";
 
 const index = () => {
   const [hours_options, set_hours_options] = React.useState<OptionBody[]>([]);
@@ -114,7 +116,7 @@ const index = () => {
     handleSubmit,
     setValue,
     watch,
-    formState: { isSubmitting, isDirty, isValid },
+    formState: { isSubmitting, isDirty, isValid, isLoading, isValidating },
   } = useForm({
     defaultValues: {
       task_description:
@@ -143,21 +145,27 @@ const index = () => {
     let isMounted = true;
     (async () => {
       try {
-        const [_hours_options, _volunteers_options, _task_types] =
-          await Promise.all([
-            apis.fetch_hour_options(),
-            apis.fetch_volunteers_count(),
-            apis.fetch_task_types(),
-          ]);
+        const result = await Promise.all([
+          apis.fetch_hour_options(),
+          apis.fetch_volunteers_count(),
+          apis.fetch_task_types(),
+        ]).catch((error) => {
+          console.log(
+            "Error fetching options for create task route",
+            JSON.stringify(error, null, 2)
+          );
+          return undefined;
+        });
 
-        if (isMounted) {
+        if (isMounted && result) {
+          const [_hours_options, _volunteers_options, _task_types] = result;
           set_hours_options(_hours_options.data.data);
           set_volunteers_count_options(_volunteers_options.data.data);
           set_task_types_options(_task_types.data.data);
           set_is_loaded(true);
         }
       } catch (error) {
-        console.error(
+        console.log(
           "Error fetching options for create task route",
           JSON.stringify(error, null, 2)
         );
@@ -188,8 +196,8 @@ const index = () => {
     return newMinDate;
   }, [startDate, startTime, isSingleDay]);
 
-  // const _is_disable_submit_button =
-  //   isDirty || isSubmitting || isLoading || isValidating || !isValid;
+  const _is_disable_submit_button =
+    isDirty || isSubmitting || isLoading || isValidating || !isValid;
 
   const onSubmit: SubmitHandler<FormData> = async (data) => {
     const {
@@ -211,13 +219,26 @@ const index = () => {
       starts_at,
       completes_at,
       task_type: task_category,
+      is_remote: true,
+      priority: "medium",
     };
 
     try {
       const _response = await apis.create_task(_request_body);
       const _data = _response.data;
-    } catch (error) {
-      console.error("Error creating task", JSON.stringify(error, null, 2));
+      Toast.show(_data.message, ToastType.SUCCESS);
+      router.push({
+        pathname: "/(authenticated-stack)/community-tasks/[id]",
+        params: {
+          id: _data.data._id,
+        },
+      });
+    } catch (error: any) {
+      const error_message =
+        error?.response?.data?.message ||
+        error?.message ||
+        "An error occurred!";
+      Toast.show(error_message, ToastType.ERROR);
     }
   };
 
@@ -429,11 +450,11 @@ const index = () => {
             {/* Submit Button */}
             <Form.Trigger asChild>
               <Button
+                disabled={_is_disable_submit_button}
                 icon={isSubmitting ? () => <Spinner /> : undefined}
-                // disabled={_is_disable_submit_button}
-                variant="outlined"
+                mt={GAP * 1.5}
               >
-                Submit
+                <Button.Text>Submit</Button.Text>
               </Button>
             </Form.Trigger>
           </Form>

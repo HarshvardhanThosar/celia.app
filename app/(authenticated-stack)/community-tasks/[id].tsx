@@ -4,6 +4,7 @@ import { useLocalSearchParams } from "expo-router";
 
 const index = () => {
   const { id } = useLocalSearchParams();
+  console.log({ id });
 
   return (
     <View>
