@@ -4,7 +4,7 @@ import AppHeaderBackground from "@/components/app-header-background";
 
 // I C O N S
 import Octicons from "@expo/vector-icons/Octicons";
-import { Avatar, Circle, H5, H6 } from "tamagui";
+import { Avatar, H5, Paragraph } from "tamagui";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import Auth from "@/context/auth.context";
 
@@ -34,7 +34,7 @@ const TabsLayout = () => {
         name="home"
         options={{
           title: "Home",
-          tabBarIcon: ({ focused, color, size }) => (
+          tabBarIcon: ({ color, size }) => (
             <Octicons name="home" size={size} color={color} />
           ),
         }}
@@ -43,7 +43,7 @@ const TabsLayout = () => {
         name="create-community-task"
         options={{
           title: "Create Task",
-          tabBarIcon: ({ color, focused, size }) => (
+          tabBarIcon: ({ color, size }) => (
             <Octicons name="plus-circle" size={size} color={color} />
           ),
         }}
@@ -54,14 +54,19 @@ const TabsLayout = () => {
           title: "Profile",
           tabBarIcon: ({ size }) => (
             <Avatar size={size} circular backgroundColor="$background">
-              <Avatar.Image
-                accessibilityLabel="Profile"
-                src={user?.profile_image ?? undefined}
-              />
+              {user?.profile_image && (
+                <Avatar.Image
+                  accessibilityLabel="Profile"
+                  src={user?.profile_image}
+                />
+              )}
               <Avatar.Fallback>
-                <H5>{`${user?.given_name.charAt(0)}${user?.family_name.charAt(
+                <Paragraph
+                  fontSize="$3"
+                  textAlign="center"
+                >{`${user?.given_name.charAt(0)}${user?.family_name.charAt(
                   0
-                )}`}</H5>
+                )}`}</Paragraph>
               </Avatar.Fallback>
             </Avatar>
           ),

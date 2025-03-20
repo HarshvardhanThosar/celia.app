@@ -16,12 +16,12 @@ import {
 import { useForm, Controller, SubmitHandler } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
-import { Eye, EyeOff } from "@tamagui/lucide-icons";
 import { GAP } from "@/constants/Dimensions";
-import { Link } from "expo-router";
 import apis from "@/apis";
-import { router } from "expo-router";
+import { Link, router } from "expo-router";
 import Toast, { ToastType } from "@/utils/toasts";
+import CheckboxWithLabel from "@/components/CheckboxWithLabel";
+import { Eye, EyeOff } from "@tamagui/lucide-icons";
 
 const schema = yup.object({
   firstName: yup.string().required("First name is required!"),
@@ -45,21 +45,24 @@ const schema = yup.object({
     .string()
     .oneOf([yup.ref("password")], "Passwords must match!")
     .required("Confirm password is required!"),
+  tnc_accepted: yup
+    .boolean()
+    .oneOf([true], "You must accept the terms and conditions to proceed!"),
 });
 
 type FormData = yup.InferType<typeof schema>;
 
-const register = () => {
+const Register = () => {
   const [secureTextEntry, setSecureTextEntry] = React.useState<boolean>(true);
-  const [t_n_c, set_T_n_C] = React.useState<boolean>(false);
+
   const form = useForm({
     defaultValues: {
       firstName: "Harshvardhan",
       lastName: "Thosar",
       email: "harshvardhanthosar@gmail.com",
-      // username: "harshvardhanthosar",
       password: "P@ssw0rd",
       cpassword: "P@ssw0rd",
+      tnc_accepted: false,
     },
     resolver: yupResolver(schema),
     mode: "onChange",
@@ -76,20 +79,21 @@ const register = () => {
   } = form;
 
   const _is_disable_submit_button =
-    isDirty || isSubmitting || isLoading || isValidating || !isValid;
+    isSubmitting || isLoading || isValidating || !isValid;
 
   const onSubmit: SubmitHandler<FormData> = async (data) => {
-    const { email, firstName, lastName, password } = data;
+    const { email, firstName, lastName, password, tnc_accepted } = data;
     try {
       const response = await apis.register_a_new_user({
         email,
         firstName,
         lastName,
         password,
-        // username,
+        tnc_accepted: tnc_accepted ?? false,
       });
+
       Toast.show(response.data.message, ToastType.SUCCESS);
-      const timeout = setTimeout(function () {
+      const timeout = setTimeout(() => {
         router.push("/");
       }, 500);
       return () => clearTimeout(timeout);
@@ -108,6 +112,7 @@ const register = () => {
         <YStack flex={1}>
           <H1>Register.</H1>
           <Form onSubmit={handleSubmit(onSubmit)} gap={GAP}>
+            {/* First Name */}
             <Controller
               control={control}
               render={({ field: { onChange, onBlur, value }, fieldState }) => (
@@ -128,6 +133,8 @@ const register = () => {
               )}
               name="firstName"
             />
+
+            {/* Last Name */}
             <Controller
               control={control}
               render={({ field: { onChange, onBlur, value }, fieldState }) => (
@@ -148,6 +155,8 @@ const register = () => {
               )}
               name="lastName"
             />
+
+            {/* Email */}
             <Controller
               control={control}
               render={({ field: { onChange, onBlur, value }, fieldState }) => (
@@ -168,6 +177,8 @@ const register = () => {
               )}
               name="email"
             />
+
+            {/* Password */}
             <Controller
               control={control}
               render={({ field: { onChange, onBlur, value }, fieldState }) => (
@@ -188,6 +199,8 @@ const register = () => {
               )}
               name="password"
             />
+
+            {/* Confirm Password */}
             <Controller
               control={control}
               render={({ field: { onChange, onBlur, value }, fieldState }) => (
@@ -226,32 +239,68 @@ const register = () => {
               )}
               name="cpassword"
             />
-            <Form.Trigger asChild disabled={_is_disable_submit_button}>
-              <Button
-                disabled={_is_disable_submit_button}
-                icon={isSubmitting ? () => <Spinner /> : undefined}
-                mt={GAP * 1.5}
-              >
-                <Button.Text>Register</Button.Text>
+
+            <Controller
+              control={control}
+              name="tnc_accepted"
+              render={({ field: { value, onChange }, fieldState }) => (
+                <YStack>
+                  <XStack gap={GAP} alignItems="center">
+                    <CheckboxWithLabel
+                      size="$4"
+                      defaultChecked={value}
+                      onCheckedChange={(checked) => onChange(checked)}
+                      label={
+                        <Label>
+                          I accept the{" "}
+                          <Link
+                            href={{
+                              pathname: "/terms",
+                            }}
+                          >
+                            <Label textDecorationLine="underline">
+                              Terms & Conditions
+                            </Label>
+                          </Link>
+                        </Label>
+                      }
+                    />
+                  </XStack>
+                  {fieldState.error && (
+                    <Label color="$red10Dark">{fieldState.error.message}</Label>
+                  )}
+                </YStack>
+              )}
+            />
+            {/* <YStack gap={GAP}>
+              <Link href="/terms" style={{ flex: 1 }}>
+                <H5 textDecorationLine="underline">Terms & Conditions</H5>
+              </Link>
+              <H5>
+                Read through the{" "}
+                <Link href="/disclaimer" style={{ flex: 1 }}>
+                  <H5 textDecorationLine="underline">Disclaimer</H5>
+                </Link>
+              </H5>
+            </YStack> */}
+            <Form.Trigger asChild>
+              <Button disabled={_is_disable_submit_button}>
+                {isSubmitting ? (
+                  <Spinner />
+                ) : (
+                  <Button.Text>Register</Button.Text>
+                )}
               </Button>
             </Form.Trigger>
           </Form>
         </YStack>
-        <XStack justifyContent="space-between" alignItems="center">
-          <H5>Already have an account?</H5>
-          <Link href="/">
-            <H5 textDecorationLine="underline">Login</H5>
-          </Link>
-        </XStack>
       </YStack>
     </ScreenWrapper>
   );
 };
 
-export default register;
+export default Register;
 
 const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-  },
+  screen: { flex: 1 },
 });

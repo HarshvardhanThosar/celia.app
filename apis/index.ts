@@ -30,6 +30,7 @@ const apis = {
     firstName,
     lastName,
     password,
+    tnc_accepted,
   }: RegisterNewUserRequestBodyType) => {
     return instance.post<RegisterNewUserResponseBodyType>(
       "/community/auth/register",
@@ -39,6 +40,7 @@ const apis = {
         lastName,
         password,
         username: email,
+        tnc_accepted,
       }
     );
   },

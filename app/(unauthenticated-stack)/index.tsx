@@ -9,7 +9,6 @@ import {
   H5,
   Input,
   Label,
-  Separator,
   Spinner,
   View,
   XStack,
@@ -280,15 +279,6 @@ const login = () => {
           <H5>Don't have an account?</H5>
           <Link href="/register">
             <H5 textDecorationLine="underline">Register</H5>
-          </Link>
-        </XStack>
-        <XStack alignItems="center" justifyContent="space-between">
-          <Link href="/terms">
-            <H5 textDecorationLine="underline">Terms and Conditions</H5>
-          </Link>
-          <Separator vertical h="$2" />
-          <Link href="/disclaimer">
-            <H5 textDecorationLine="underline">Disclaimer</H5>
           </Link>
         </XStack>
       </YStack>

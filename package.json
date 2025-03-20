@@ -59,7 +59,8 @@
     "react-native-web": "~0.19.13",
     "react-native-webview": "13.12.5",
     "tamagui": "^1.121.10",
-    "yup": "^1.6.1"
+    "yup": "^1.6.1",
+    "expo-clipboard": "~7.0.1"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",

@@ -1,11 +1,11 @@
 export default {
   expo: {
-    name: "celia.app",
+    name: "Celia",
     slug: "celia-app",
     version: "1.0.0",
     orientation: "portrait",
     icon: "./assets/images/icon.png",
-    scheme: "myapp",
+    scheme: "celia",
     userInterfaceStyle: "automatic",
     newArchEnabled: true,
     extra: {

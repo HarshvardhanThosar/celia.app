@@ -1,5 +1,5 @@
 import React from "react";
-import { RefreshControl, StyleSheet } from "react-native";
+import { Pressable, RefreshControl, StyleSheet } from "react-native";
 import ScreenWrapper from "@/components/screen-wrapper";
 import Auth from "@/context/auth.context";
 import {
@@ -10,14 +10,63 @@ import {
   Button,
   Spinner,
   Paragraph,
-  H6,
+  View,
+  ViewProps,
 } from "tamagui";
 import { GAP } from "@/constants/Dimensions";
-import { PowerOff, SquareArrowOutUpRight } from "@tamagui/lucide-icons";
+import {
+  Copy,
+  Info,
+  PowerOff,
+  SquareArrowOutUpRight,
+  X,
+} from "@tamagui/lucide-icons";
 import apis from "@/apis";
 import { unauthenticate_instance } from "@/apis/instance";
 import { format_number } from "@/utils/numbers";
 import { Link } from "expo-router";
+import * as Clipboard from "expo-clipboard";
+import Toast from "@/utils/toasts";
+
+const StatTile = ({
+  icon,
+  label,
+  onPress = () => undefined,
+  stat,
+  title,
+  ...props
+}: {
+  stat: string | number;
+  label: string;
+  title: string;
+  icon: React.ReactNode;
+  onPress: () => void;
+} & ViewProps) => {
+  return (
+    <XStack flex={1} {...props}>
+      <Pressable onPress={onPress} style={{ width: "100%" }}>
+        <YStack
+          py={GAP}
+          borderColor="$color"
+          borderWidth="$0.25"
+          borderRadius="$6"
+          p={GAP}
+        >
+          <XStack gap={GAP} alignItems="flex-start">
+            <H5 textTransform="uppercase" flex={1}>
+              {title}
+            </H5>
+            {icon}
+          </XStack>
+          <H3 pt={GAP}>
+            {stat}
+            <H5> {label}</H5>
+          </H3>
+        </YStack>
+      </Pressable>
+    </XStack>
+  );
+};
 
 const index = () => {
   const [is_refreshing, set_is_refresh] = React.useState(false);
@@ -31,6 +80,10 @@ const index = () => {
   );
   const _tasks_created_count = React.useMemo(
     () => format_number(user?.tasks_created?.length ?? 0),
+    [user]
+  );
+  const _coupons_redeemed = React.useMemo(
+    () => format_number(user?.coupons?.length ?? 0),
     [user]
   );
 
@@ -54,6 +107,11 @@ const index = () => {
       .finally(() => set_is_refresh(false));
   }, []);
 
+  const _copy_id = React.useCallback(async () => {
+    if (!_id) return;
+    await Clipboard.setStringAsync(_id);
+  }, [_id]);
+
   const _refreshControl = React.useMemo(
     () => (
       <RefreshControl
@@ -76,110 +134,72 @@ const index = () => {
             {isLoading ? () => <Spinner /> : <PowerOff size="$1" />}
           </Button>
         </XStack>
-        <YStack>
+        <YStack
+          backgroundColor="$accent11"
+          borderColor="$color"
+          borderWidth="$0.25"
+          borderRadius="$6"
+          p={GAP}
+          gap={GAP}
+        >
           <Paragraph>
-            We invite you to participate in an optional survey to share your
-            experience with the application and task scoring mechanism. Your
-            feedback is invaluable in helping improve this research. To maintain
-            anonymity, please use the following ID when completing the survey.
-            If you wish to participate, click the link below. Your input is
-            greatly appreciated!
+            Join an optional survey to share your experience and improve this
+            research. Stay anonymous with the provided ID. Click below to
+            participate.
           </Paragraph>
-          <Paragraph>Note:</Paragraph>
-          <H6>{_id}</H6>
+          <XStack gap={GAP} alignItems="center">
+            <Paragraph
+              flex={1}
+              width="100%"
+              numberOfLines={1}
+              textOverflow="ellipsis"
+            >
+              {_id}
+            </Paragraph>
+            <Button chromeless onPress={_copy_id} size="$3" p="$2">
+              <Copy />
+            </Button>
+          </XStack>
+          <View p={GAP / 2} borderRadius={GAP * 2} backgroundColor="$accent1">
+            <Link href="https://docs.google.com/forms/d/e/1FAIpQLScduQykhbiLSfk3CJJK6cAIUtIpe3wI9sjTxiKCYGaqZiVXig/viewform?usp=header">
+              <Paragraph textAlign="center" color="$accent12">
+                Survey link{" "}
+                <SquareArrowOutUpRight size={15} color="$accent12" />
+              </Paragraph>
+            </Link>
+          </View>
         </YStack>
-
-        <Paragraph>
-          Earn score by completing community tasks, which can be redeemed for
-          retail items.
-        </Paragraph>
         <XStack gap={GAP}>
-          <YStack
-            borderColor="$color"
-            borderWidth="$0.25"
-            borderRadius="$6"
-            p={GAP}
-            flex={1}
-          >
-            <H5 textTransform="uppercase">score</H5>
-            <H3 pt={GAP} pb={GAP / 2}>
-              {_score} <H5>points</H5>
-            </H3>
-          </YStack>
-
-          <YStack
-            borderColor="$color"
-            borderWidth="$0.25"
-            borderRadius="$6"
-            p={GAP}
-            flex={1}
-          >
-            <XStack>
-              <YStack flex={1}>
-                <H5 textTransform="uppercase">Tasks participated</H5>
-                <H3 pt={GAP}>
-                  {_tasks_participated_count}
-                  <H5> tasks</H5>
-                </H3>
-              </YStack>
-              <Link href="/(authenticated-stack)/community-tasks/participated-listing">
-                <SquareArrowOutUpRight />
-              </Link>
-            </XStack>
-          </YStack>
+          <StatTile
+            stat={_score}
+            label="points"
+            title="Points earned"
+            onPress={() => undefined}
+            icon={<Info size={15} />}
+          />
+          <StatTile
+            stat={_tasks_participated_count}
+            label="tasks"
+            title="Tasks participated"
+            onPress={() => undefined}
+            icon={<SquareArrowOutUpRight size={15} />}
+          />
         </XStack>
-
         <XStack gap={GAP}>
-          <YStack
-            py={GAP}
-            borderColor="$color"
-            borderWidth="$0.25"
-            borderRadius="$6"
-            p={GAP}
-            flex={1}
-          >
-            <XStack>
-              <YStack flex={1}>
-                <H5 textTransform="uppercase" flex={1}>
-                  created tasks
-                </H5>
-                <H3 pt={GAP}>
-                  {_tasks_created_count}
-                  <H5> tasks</H5>
-                </H3>
-              </YStack>
-              <Link href="/(authenticated-stack)/community-tasks/created-listing">
-                <SquareArrowOutUpRight />
-              </Link>
-            </XStack>
-          </YStack>
-
-          <YStack
-            py={GAP}
-            borderColor="$color"
-            borderWidth="$0.25"
-            borderRadius="$6"
-            p={GAP}
-            flex={1}
-          >
-            <XStack>
-              <YStack flex={1}>
-                <H5 textTransform="uppercase" flex={1}>
-                  coupons redeemed
-                </H5>
-                <H3 pt={GAP}>
-                  {_tasks_created_count} <H5>coupons redeemed</H5>
-                </H3>
-              </YStack>
-              <Link
-                href={{
-                  pathname: "/(authenticated-stack)/coupons/redeemed-listing",
-                }}
-              >
-                <SquareArrowOutUpRight />
-              </Link>
-            </XStack>
-          </YStack>
+          <StatTile
+            stat={_tasks_created_count}
+            label="tasks"
+            title="Tasks created"
+            onPress={() => undefined}
+            icon={<SquareArrowOutUpRight size={15} />}
+          />
+          <StatTile
+            stat={_coupons_redeemed}
+            label="coupons"
+            title="Coupons redeemed"
+            onPress={() => undefined}
+            icon={<SquareArrowOutUpRight size={15} />}
+          />
         </XStack>
       </YStack>
     </ScreenWrapper>

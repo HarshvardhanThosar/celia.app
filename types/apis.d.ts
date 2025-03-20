@@ -8,6 +8,7 @@ export type RegisterNewUserRequestBodyType = {
   firstName: string;
   lastName: string;
   password: string;
+  tnc_accepted: boolean;
 };
 
 export type RegisterNewUserResponseBodyType = ResponseType<{

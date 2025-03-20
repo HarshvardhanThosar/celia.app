@@ -1,5 +1,6 @@
 import React from "react";
 import { Slot, Stack } from "expo-router";
+import AppHeaderBackground from "@/components/app-header-background";
 
 const UnauthenticatedLayout = () => {
   return (
@@ -28,6 +29,7 @@ const UnauthenticatedLayout = () => {
           presentation: "modal",
           title: "Terms & Conditions",
           headerShown: true,
+          headerBackground: () => <AppHeaderBackground />,
         }}
       />
       <Stack.Screen
@@ -36,8 +38,10 @@ const UnauthenticatedLayout = () => {
           presentation: "modal",
           title: "Disclaimer",
           headerShown: true,
+          headerBackground: () => <AppHeaderBackground />,
         }}
       />
+      {/* <Slot /> */}
     </Stack>
   );
 };

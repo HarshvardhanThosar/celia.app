@@ -7,7 +7,7 @@ const CheckboxWithLabel = ({
   size,
   label = "Accept terms and conditions",
   ...checkboxProps
-}: CheckboxProps & { label?: string }) => {
+}: CheckboxProps & { label?: string | React.ReactNode }) => {
   const id = `checkbox-${(size || "").toString().slice(1)}`;
   return (
     <XStack width={300} alignItems="center" gap={GAP}>
