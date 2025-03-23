@@ -43,6 +43,19 @@ function handle_registration_error(errorMessage: string) {
   throw new Error(errorMessage);
 }
 
+async function triggerTestNotification() {
+  await Notifications.scheduleNotificationAsync({
+    content: {
+      title: "Test Deep Link",
+      body: "Tap to open screen!",
+      data: {
+        url: "celia://profile",
+      },
+    },
+    trigger: null,
+  });
+}
+
 async function register_for_push_notifications_async() {
   if (Platform.OS === "android") {
     Notifications.setNotificationChannelAsync("default", {

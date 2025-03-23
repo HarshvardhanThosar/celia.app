@@ -118,16 +118,57 @@ const apis = {
     return instance.post<CreateTaskResponseBodyType>("/community/tasks/", body);
   },
 
+  /**
+   * Fetches a recommended list of tasks
+   * @param param.limit optional number
+   * @param param.skip optional number
+   * @returns
+   */
+  fetch_recommended_tasks: async ({
+    limit,
+    skip,
+  }: PaginationQueryParamsType) => {
+    const params = new URLSearchParams();
+    if (limit) {
+      params.set("limit", limit.toString());
+    }
+    if (skip) {
+      params.set("skip", skip.toString());
+    }
+    return instance.get(`/community/tasks/?${params.toString()}`);
+  },
+
+  /**
+   * Fetch a particular task
+   * @param param0
+   * @returns
+   */
+  fetch_task_by_id: async ({ id }: { id: string }) => {
+    return instance.get(`/community/tasks/${id}`);
+  },
+
+  /**
+   *
+   * @returns
+   */
   fetch_task_types: async () => {
     return instance.get<OptionsResponseBody>("/community/tasks/task-types");
   },
 
+  /**
+   *
+   * @returns
+   */
   fetch_volunteers_count: async () => {
     return instance.get<OptionsResponseBody>(
       "/community/tasks/volunteer-count-options"
     );
   },
 
+  /**
+   *
+   * @returns
+   */
   fetch_hour_options: async () => {
     return instance.get<OptionsResponseBody>("/community/tasks/hours-options");
   },

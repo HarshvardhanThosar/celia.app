@@ -1,10 +1,23 @@
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
-import { useLocalSearchParams } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 
 const index = () => {
   const { id } = useLocalSearchParams();
-  console.log({ id });
+
+  React.useLayoutEffect(() => {
+    (async () => {
+      console.log({ id });
+    })();
+  }, [id]);
+
+  if (!id) {
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.reload();
+    }
+  }
 
   return (
     <View>

@@ -1,6 +1,6 @@
 export type UserIdType = string;
 
-export type PaginationQueryParamsType = { skip: number; limit: number };
+export type PaginationQueryParamsType = { skip?: number; limit?: number };
 
 export type RegisterNewUserRequestBodyType = {
   // username: string;

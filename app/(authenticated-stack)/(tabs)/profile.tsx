@@ -124,7 +124,7 @@ const index = () => {
 
   return (
     <ScreenWrapper refreshControl={_refreshControl} scrollable>
-      <YStack style={styles.screen} px={GAP} gap={GAP * 1.5}>
+      <YStack style={styles.screen} px={GAP} gap={GAP}>
         <XStack alignItems="center">
           <YStack flex={1}>
             <H5 textTransform="uppercase">Hi, </H5>

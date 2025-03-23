@@ -197,7 +197,7 @@ const index = () => {
   }, [startDate, startTime, isSingleDay]);
 
   const _is_disable_submit_button =
-    isDirty || isSubmitting || isLoading || isValidating || !isValid;
+    isSubmitting || isLoading || isValidating || !isValid;
 
   const onSubmit: SubmitHandler<FormData> = async (data) => {
     const {

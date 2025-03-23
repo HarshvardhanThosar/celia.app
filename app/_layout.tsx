@@ -9,18 +9,24 @@ import Auth from "@/context/auth.context";
 import Theme from "@/context/theme.context";
 import { Appearance, ColorSchemeName } from "react-native";
 import mixpanel from "@/services/mixpanel";
-
-// TODO:
-// 1. Most frequently chosen food items
-// 2. Type of tasks like by users
-// 3. Remote / physical, which is preferred
-// 4. Connection with peer and follow
-// 5. Referrals and task sharing, item ownership sharing
-// 6. Users can add food items
-// 7. Personalize feed based on user's behaviour
+import * as Linking from "expo-linking";
+import * as Notifications from "expo-notifications";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
+
+// async function _trigger_test_notification() {
+//   await Notifications.scheduleNotificationAsync({
+//     content: {
+//       title: "Test Deep Link",
+//       body: "Tap to open screen!",
+//       data: {
+//         url: "celia://profile",
+//       },
+//     },
+//     trigger: null,
+//   });
+// }
 
 function RootLayout() {
   mixpanel.init();
@@ -37,6 +43,16 @@ function RootLayout() {
       SplashScreen.hideAsync();
     }
 
+    // _trigger_test_notification();
+
+    const notification_subscription =
+      Notifications.addNotificationResponseReceivedListener((response) => {
+        const url = response.notification.request.content.data?.url;
+        if (url) {
+          Linking.openURL(url);
+        }
+      });
+
     const appearance_subscription = Appearance.addChangeListener(
       ({ colorScheme }) => {
         setTheme(colorScheme ?? "light");
@@ -45,6 +61,7 @@ function RootLayout() {
 
     return () => {
       appearance_subscription.remove();
+      notification_subscription.remove();
     };
   }, [loaded]);
 
@@ -65,4 +82,3 @@ function RootLayout() {
 }
 
 export default RootLayout;
-// export default Sentry.wrap(RootLayout);
