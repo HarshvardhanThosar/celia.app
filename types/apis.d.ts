@@ -2,6 +2,35 @@ export type UserIdType = string;
 
 export type PaginationQueryParamsType = { skip?: number; limit?: number };
 
+export type LocationType = {
+  latitude: number;
+  longitude: number;
+};
+
+export type MediaType = string[];
+
+export type CommunityTaskType = {
+  _id: string;
+  completes_at: string;
+  created_at: string;
+  description: string;
+  feedback_note?: unknown;
+  hours_required_per_day: number;
+  is_remote: boolean;
+  location: LocationType;
+  media: string[];
+  owner_details: { name: string; profile_image?: string };
+  owner_id: string;
+  participants: { name: string; profile_image?: string }[];
+  priority: string;
+  rating?: number;
+  score_assignment_status: string;
+  starts_at: string;
+  status: string;
+  updated_at: string;
+  volunteers_required: number;
+};
+
 export type RegisterNewUserRequestBodyType = {
   // username: string;
   email: string;
@@ -128,3 +157,5 @@ export type CreateTaskRequestBodyType = FormDataType<CreateTaskFormType>;
 export type CreateTaskResponseBodyType = ResponseType<{
   _id: string;
 }>;
+
+export type FetchTaskById = ResponseType<CommunityTaskType>;

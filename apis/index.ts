@@ -2,6 +2,7 @@ import type {
   CreateTaskFormType,
   CreateTaskResponseBodyType,
   FetchLoggedInUserProfileResponseBodyType,
+  FetchTaskById,
   LoginWithUsernameAndPasswordRequestBodyType,
   LoginWithUsernameAndPasswordResponseBodyType,
   OptionsResponseBody,
@@ -119,6 +120,74 @@ const apis = {
   },
 
   /**
+   * Request participation in a task
+   * @param param.task_id string
+   * @returns
+   */
+  request_participation: async ({ task_id }: { task_id: string }) => {
+    return instance.post(`/community/tasks/${task_id}/request-participation`);
+  },
+
+  /**
+   * Accept participation of another user for a task
+   * @param param.participant_id string
+   * @param param.task_id string
+   * @returns
+   */
+  accept_participation: async ({
+    participant_id,
+    task_id,
+  }: {
+    task_id: string;
+    participant_id: string;
+  }) => {
+    return instance.post(
+      `/community/tasks/${task_id}/accept-participation/${participant_id}`
+    );
+  },
+
+  /**
+   * Mark a task as complete and rate the task
+   * @param param.feedback_note string
+   * @param param.rating number
+   * @param param.task_id string
+   * @returns
+   */
+  mark_task_as_complete_and_rate: async ({
+    feedback_note,
+    rating,
+    task_id,
+  }: {
+    feedback_note?: string;
+    rating?: number;
+    task_id: string;
+  }) => {
+    return instance.patch(`/community/tasks/${task_id}/complete-and-rate`, {
+      feedback_note,
+      rating,
+    });
+  },
+
+  /**
+   * Mark attendance for a task
+   * @param param.code string 4 digit code from the creator
+   * @param param.task_id string
+   * @returns
+   */
+  mark_attendance: async ({
+    code,
+    task_id,
+  }: {
+    task_id: string;
+    code: string;
+  }) => {
+    return instance.post(`/community/tasks/${task_id}/mark-attendance`, {
+      task_id,
+      code,
+    });
+  },
+
+  /**
    * Fetches a recommended list of tasks
    * @param param.limit optional number
    * @param param.skip optional number
@@ -144,7 +213,7 @@ const apis = {
    * @returns
    */
   fetch_task_by_id: async ({ id }: { id: string }) => {
-    return instance.get(`/community/tasks/${id}`);
+    return instance.get<FetchTaskById>(`/community/tasks/${id}`);
   },
 
   /**

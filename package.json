@@ -28,8 +28,10 @@
     "@tamagui/lucide-icons": "^1.121.8",
     "@tanstack/react-query": "^5.62.11",
     "axios": "^1.7.9",
+    "date-fns": "^4.1.0",
     "expo": "~52.0.38",
     "expo-blur": "~14.0.3",
+    "expo-clipboard": "~7.0.1",
     "expo-constants": "~17.0.8",
     "expo-device": "~7.0.2",
     "expo-font": "~13.0.4",
@@ -59,8 +61,7 @@
     "react-native-web": "~0.19.13",
     "react-native-webview": "13.12.5",
     "tamagui": "^1.121.10",
-    "yup": "^1.6.1",
-    "expo-clipboard": "~7.0.1"
+    "yup": "^1.6.1"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",

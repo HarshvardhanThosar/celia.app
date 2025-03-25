@@ -12,7 +12,7 @@ const Task = () => {
     router.push({
       pathname: "/community-tasks/[id]",
       params: {
-        id: 1,
+        id: "67e0211fd7def1cfbb7e56a3",
       },
     });
 
@@ -27,7 +27,7 @@ const Task = () => {
         gap={GAP}
       >
         <XStack justifyContent="space-between" alignItems="center">
-          <XStack alignItems="center" gap={10}>
+          <XStack alignItems="center" gap={GAP}>
             <Avatar circular size="$4">
               <Avatar.Image
                 accessibilityLabel="Cam"

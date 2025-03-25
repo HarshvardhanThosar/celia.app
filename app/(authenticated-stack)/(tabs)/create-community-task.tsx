@@ -228,7 +228,7 @@ const index = () => {
       const _data = _response.data;
       Toast.show(_data.message, ToastType.SUCCESS);
       router.push({
-        pathname: "/(authenticated-stack)/community-tasks/[id]",
+        pathname: "/community-tasks/[id]",
         params: {
           id: _data.data._id,
         },

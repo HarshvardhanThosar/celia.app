@@ -6,12 +6,12 @@ import {
   YStack,
   XStack,
   H3,
-  H5,
   Button,
   Spinner,
   Paragraph,
   View,
   ViewProps,
+  H6,
 } from "tamagui";
 import { GAP } from "@/constants/Dimensions";
 import {
@@ -53,14 +53,23 @@ const StatTile = ({
           p={GAP}
         >
           <XStack gap={GAP} alignItems="flex-start">
-            <H5 textTransform="uppercase" flex={1}>
-              {title}
-            </H5>
+            <YStack flex={1}>
+              {/* {title.split(" ")[0] ?? ( */}
+              <H6 textTransform="uppercase" flex={1}>
+                {title.split(" ")[0]}
+              </H6>
+              {/* )} */}
+              {/* {title.split(" ")[1] ?? ( */}
+              <H6 textTransform="uppercase" flex={1}>
+                {title.split(" ")[1]}
+              </H6>
+              {/* )} */}
+            </YStack>
             {icon}
           </XStack>
           <H3 pt={GAP}>
             {stat}
-            <H5> {label}</H5>
+            <H6> {label}</H6>
           </H3>
         </YStack>
       </Pressable>
@@ -127,7 +136,7 @@ const index = () => {
       <YStack style={styles.screen} px={GAP} gap={GAP}>
         <XStack alignItems="center">
           <YStack flex={1}>
-            <H5 textTransform="uppercase">Hi, </H5>
+            <H6>Hi, </H6>
             <H3>{user?.name}</H3>
           </YStack>
           <Button size="$3" p="$2" onPress={_logout}>
@@ -160,7 +169,7 @@ const index = () => {
               <Copy />
             </Button>
           </XStack>
-          <View p={GAP / 2} borderRadius={GAP * 2} backgroundColor="$accent1">
+          <View p={GAP / 2} borderRadius={GAP * 2} backgroundColor="$accent3">
             <Link href="https://docs.google.com/forms/d/e/1FAIpQLScduQykhbiLSfk3CJJK6cAIUtIpe3wI9sjTxiKCYGaqZiVXig/viewform?usp=header">
               <Paragraph textAlign="center" color="$accent12">
                 Survey link{" "}

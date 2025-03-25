@@ -12,7 +12,7 @@ const Coupon = () => {
     router.push({
       pathname: "/coupons/[id]",
       params: {
-        id: 1,
+        id: "0",
       },
     });
 
