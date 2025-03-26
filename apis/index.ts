@@ -3,6 +3,7 @@ import type {
   CreateTaskResponseBodyType,
   FetchLoggedInUserProfileResponseBodyType,
   FetchTaskById,
+  FetchTasks,
   LoginWithUsernameAndPasswordRequestBodyType,
   LoginWithUsernameAndPasswordResponseBodyType,
   OptionsResponseBody,
@@ -251,7 +252,12 @@ const apis = {
   fetch_community_tasks: async ({
     skip = 0,
     limit = 10,
-  }: PaginationQueryParamsType) => {},
+  }: PaginationQueryParamsType) => {
+    const params = new URLSearchParams();
+    if (skip) params.set("skip", skip.toString());
+    if (limit) params.set("limit", limit.toString());
+    return instance.get<FetchTasks>(`/community/tasks/?${params.toString()}`);
+  },
 
   /**
    * Fetch coupons

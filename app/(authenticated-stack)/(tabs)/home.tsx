@@ -1,7 +1,6 @@
 import React from "react";
 import { StyleSheet, FlatList, Pressable } from "react-native";
 import {
-  Avatar,
   Button,
   H1,
   H2,
@@ -9,10 +8,11 @@ import {
   H5,
   H6,
   Image,
+  Paragraph,
   XStack,
   YStack,
 } from "tamagui";
-import { Plus } from "@tamagui/lucide-icons";
+import { Coins, Plus } from "@tamagui/lucide-icons";
 
 // C O M P O N E N T S
 import ScreenWrapper from "@/components/screen-wrapper";
@@ -23,81 +23,37 @@ import Coupon from "@/components/coupon";
 import { GAP } from "@/constants/Dimensions";
 import { format_number } from "@/utils/numbers";
 import { router } from "expo-router";
+import Avatar from "@/components/ui/Avatar";
+import Auth from "@/context/auth.context";
+import useCommunityTask from "@/hooks/useCommunityTasks";
 
 const index = () => {
+  const skip = 0,
+    limit = 10;
   const _navigate_to_view_all_community_tasks = () =>
     router.push("/(authenticated-stack)/community-tasks/listing");
   const _navigate_to_view_all_coupons = () =>
     router.push("/(authenticated-stack)/coupons/listing");
+  const { data: community_tasks_response } = useCommunityTask({ skip, limit });
+  const tasks = community_tasks_response?.data.data;
+  const { data: user } = Auth.useAuth();
+
+  console.log(tasks);
 
   return (
     <React.Fragment>
       <ScreenWrapper>
-        <YStack style={styles.screen} gap={GAP * 1.5}>
-          <YStack gap={GAP * 0.5}>
-            <XStack px={GAP} justifyContent="space-between" alignItems="center">
-              <H5 textTransform="uppercase">Coupons</H5>
-              <Pressable onPress={_navigate_to_view_all_coupons}>
-                <H6 textTransform="uppercase" textDecorationLine="underline">
-                  View all
-                </H6>
-              </Pressable>
-            </XStack>
-            <FlatList
-              horizontal
-              persistentScrollbar
-              showsHorizontalScrollIndicator={false}
-              data={[1, 1, 1, 1, 1, 1]}
-              renderItem={Coupon}
-              ListHeaderComponent={<XStack width={GAP} />}
-              ListFooterComponent={<XStack width={GAP} />}
-              ItemSeparatorComponent={() => <XStack width={GAP} />}
-            />
-          </YStack>
-          <YStack gap={GAP * 0.5}>
-            <XStack px={GAP} justifyContent="space-between" alignItems="center">
-              <H5 textTransform="uppercase">Community Tasks</H5>
-              <Pressable onPress={_navigate_to_view_all_community_tasks}>
-                <H6 textTransform="uppercase" textDecorationLine="underline">
-                  View all
-                </H6>
-              </Pressable>
-            </XStack>
-            <FlatList
-              horizontal
-              persistentScrollbar
-              showsHorizontalScrollIndicator={false}
-              data={[1, 1, 1, 1, 1, 1]}
-              renderItem={Task}
-              ListHeaderComponent={<XStack width={GAP} />}
-              ListFooterComponent={<XStack width={GAP} />}
-              ItemSeparatorComponent={() => <XStack width={GAP} />}
-            />
-          </YStack>
-        </YStack>
-      </ScreenWrapper>
-    </React.Fragment>
-  );
-
-  return (
-    <React.Fragment>
-      <ScreenWrapper>
-        <YStack style={styles.screen} gap={GAP * 1.5}>
+        <YStack style={styles.screen} gap={GAP * 1.5} pb={GAP * 4}>
           <XStack
             style={styles.heading1_container}
             alignItems="center"
             justifyContent="space-between"
           >
             <YStack>
-              <H5
-                color="#44463e"
-                fontWeight="bold"
-                style={{ letterSpacing: 0.25 }}
-              >
+              <H5 fontWeight="bold" style={{ letterSpacing: 0.25 }}>
                 Welcome to
               </H5>
               <H1
-                color="#  "
                 fontWeight="500"
                 style={{
                   fontFamily: "AbrilFatface",
@@ -107,13 +63,24 @@ const index = () => {
                 celia.
               </H1>
             </YStack>
-            <Avatar circular size="$4">
-              <Avatar.Image
-                accessibilityLabel="Cam"
-                src="https://images.unsplash.com/photo-1548142813-c348350df52b?&w=150&h=150&dpr=2&q=80"
+            <XStack
+              alignItems="center"
+              justifyContent="center"
+              gap={GAP}
+              backgroundColor="$color9"
+              padding={GAP / 4}
+              borderRadius={GAP * 3}
+            >
+              <XStack pl={GAP} alignItems="center" gap={GAP / 3}>
+                <Coins size={14} />
+                <Paragraph>{format_number(user?.score)}</Paragraph>
+              </XStack>
+              <Avatar
+                profile_image={user?.profile_image}
+                name={user?.name}
+                size={GAP * 2.5}
               />
-              <Avatar.Fallback backgroundColor="$blue10" />
-            </Avatar>
+            </XStack>
           </XStack>
           <YStack px={GAP} py={GAP * 2} gap={GAP} backgroundColor="#44463e">
             <YStack gap={GAP / 2}>
@@ -227,9 +194,14 @@ const index = () => {
             />
           </YStack>
           <YStack gap={GAP * 0.5}>
-            <YStack px={GAP}>
-              <H6>Coupons</H6>
-            </YStack>
+            <XStack px={GAP} justifyContent="space-between" alignItems="center">
+              <H5 textTransform="uppercase">Coupons</H5>
+              <Pressable onPress={_navigate_to_view_all_coupons}>
+                <H6 textTransform="uppercase" textDecorationLine="underline">
+                  View all
+                </H6>
+              </Pressable>
+            </XStack>
             <FlatList
               horizontal
               persistentScrollbar
@@ -241,25 +213,38 @@ const index = () => {
               ItemSeparatorComponent={() => <XStack width={GAP} />}
             />
           </YStack>
-          <YStack gap={GAP * 0.5}>
-            <YStack px={GAP}>
-              <H6>Community Tasks</H6>
+          {tasks?.length ? (
+            <YStack gap={GAP * 0.5}>
+              <XStack
+                px={GAP}
+                justifyContent="space-between"
+                alignItems="center"
+              >
+                <H5 textTransform="uppercase">Community Tasks</H5>
+                <Pressable onPress={_navigate_to_view_all_community_tasks}>
+                  <H6 textTransform="uppercase" textDecorationLine="underline">
+                    View all
+                  </H6>
+                </Pressable>
+              </XStack>
+              <FlatList
+                horizontal
+                persistentScrollbar
+                showsHorizontalScrollIndicator={false}
+                data={tasks}
+                renderItem={({ index, item, separators }) => (
+                  <Task {...item} key={index + item._id} />
+                )}
+                ListHeaderComponent={<XStack width={GAP} />}
+                ListFooterComponent={<XStack width={GAP} />}
+                ItemSeparatorComponent={() => <XStack width={GAP} />}
+              />
             </YStack>
-            <FlatList
-              horizontal
-              persistentScrollbar
-              showsHorizontalScrollIndicator={false}
-              data={[1, 1, 1, 1, 1, 1]}
-              renderItem={Task}
-              ListHeaderComponent={<XStack width={GAP} />}
-              ListFooterComponent={<XStack width={GAP} />}
-              ItemSeparatorComponent={() => <XStack width={GAP} />}
-            />
-          </YStack>
+          ) : null}
         </YStack>
       </ScreenWrapper>
       <Button
-        backgroundColor="#44463e"
+        theme="accent"
         icon={<Plus color="#c5a57d" size="$2" />}
         size="$5"
         position="absolute"

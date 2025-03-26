@@ -1,6 +1,6 @@
-import storage, { STORAGE_KEYS } from "@/utils/storage";
 import axios from "axios";
 import { router } from "expo-router";
+import storage, { STORAGE_KEYS } from "@/utils/storage";
 
 const instance = axios.create({
   baseURL: `${process.env.EXPO_PUBLIC_API_URL}/api/v1`,
@@ -12,29 +12,37 @@ const instance = axios.create({
 });
 
 const authenticate_instance = (token: string) => {
-  instance.defaults.headers.common.Authorization = `Bearer ` + token;
+  instance.defaults.headers.common.Authorization = `Bearer ${token}`;
 };
 
 const unauthenticate_instance = () => {
-  instance.defaults.headers.delete.Authorization;
+  delete instance.defaults.headers.common.Authorization;
 };
 
-const logout = async () => {
-  await storage.reset(STORAGE_KEYS.access);
-  await storage.reset(STORAGE_KEYS.refresh);
-  unauthenticate_instance();
-  router.replace("/");
-};
-
+// Interceptor
 instance.interceptors.response.use(
   (response) => response,
   async (error) => {
-    if (error.response?.status === 401) {
-      console.warn("Unauthorized: Token expired or invalid.");
-      await logout();
+    if (error?.response?.status === 401 || error?.response?.status === 403) {
+      await logout(); // You can later inject pathname if needed
     }
     return Promise.reject(error);
   }
 );
 
-export { instance, authenticate_instance, unauthenticate_instance };
+const logout = async (currentPath?: string) => {
+  console.log("🔒 Logging out user...");
+  await storage.reset(STORAGE_KEYS.access);
+  await storage.reset(STORAGE_KEYS.refresh);
+  unauthenticate_instance();
+
+  const _is_already_logged_out = currentPath?.startsWith(
+    "/(unauthenticated-stack)"
+  );
+
+  if (!_is_already_logged_out) {
+    router.replace("/(unauthenticated-stack)"); // send to login
+  }
+};
+
+export { instance, authenticate_instance, unauthenticate_instance, logout };

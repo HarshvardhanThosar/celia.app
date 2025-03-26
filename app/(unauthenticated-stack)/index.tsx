@@ -148,7 +148,7 @@ const login = () => {
   } = form;
 
   const _is_disable_submit_button =
-    isDirty || isSubmitting || isLoading || isValidating || !isValid;
+    isSubmitting || isLoading || isValidating || !isValid;
 
   const onSubmit: SubmitHandler<FormData> = async (data) => {
     const { username, password } = data;
@@ -279,6 +279,7 @@ const login = () => {
             />
             <Form.Trigger asChild disabled={_is_disable_submit_button}>
               <Button
+                theme="accent"
                 disabled={_is_disable_submit_button}
                 icon={isSubmitting ? () => <Spinner /> : undefined}
                 mt={GAP * 1.5}

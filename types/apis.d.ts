@@ -9,6 +9,16 @@ export type LocationType = {
 
 export type MediaType = string[];
 
+export type ParticipantType = {
+  _id: string;
+  name: string;
+  profile_image?: string | null;
+  requested_at: number;
+  status: "rejected" | "accepted" | "requested";
+  updated_at: number;
+  user_id: string;
+};
+
 export type CommunityTaskType = {
   _id: string;
   completes_at: string;
@@ -18,10 +28,10 @@ export type CommunityTaskType = {
   hours_required_per_day: number;
   is_remote: boolean;
   location: LocationType;
-  media: string[];
+  media?: string[];
   owner_details: { name: string; profile_image?: string };
   owner_id: string;
-  participants: { name: string; profile_image?: string }[];
+  participants: ParticipantType[];
   priority: string;
   rating?: number;
   score_assignment_status: string;
@@ -159,3 +169,5 @@ export type CreateTaskResponseBodyType = ResponseType<{
 }>;
 
 export type FetchTaskById = ResponseType<CommunityTaskType>;
+
+export type FetchTasks = ResponseType<CommunityTaskType[]>;

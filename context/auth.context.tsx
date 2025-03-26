@@ -44,6 +44,8 @@ const AuthWrapper = ({ children }: React.PropsWithChildren) => {
   }, []);
 
   React.useLayoutEffect(() => {
+    console.log(process.env?.EXPO_PUBLIC_API_URL);
+
     (async () => {
       const _stored_access_token = await storage
         .get<string>(STORAGE_KEYS.access)

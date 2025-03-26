@@ -55,12 +55,12 @@ const StatTile = ({
           <XStack gap={GAP} alignItems="flex-start">
             <YStack flex={1}>
               {/* {title.split(" ")[0] ?? ( */}
-              <H6 textTransform="uppercase" flex={1}>
+              <H6 textTransform="uppercase" flex={1} fontSize={GAP * 0.75}>
                 {title.split(" ")[0]}
               </H6>
               {/* )} */}
               {/* {title.split(" ")[1] ?? ( */}
-              <H6 textTransform="uppercase" flex={1}>
+              <H6 textTransform="uppercase" flex={1} fontSize={GAP * 0.75}>
                 {title.split(" ")[1]}
               </H6>
               {/* )} */}

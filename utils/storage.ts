@@ -3,6 +3,8 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 export enum STORAGE_KEYS {
   access = "access_token",
   refresh = "refresh_token",
+  username = "username",
+  password = "password",
 }
 
 const storage = {

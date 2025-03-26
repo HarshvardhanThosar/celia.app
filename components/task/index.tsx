@@ -1,18 +1,25 @@
 import React from "react";
-import { Dimensions, Pressable, StyleSheet, Text, View } from "react-native";
-import { Avatar, Image, Paragraph, XStack, YStack } from "tamagui";
+import { Dimensions, Pressable, StyleSheet } from "react-native";
+import { Paragraph, XStack, YStack } from "tamagui";
 import { Timer, Users, CalendarDays } from "@tamagui/lucide-icons";
-import { GAP, TASK_CROP_MAIN_IMAGE_ASPECT_RATIO } from "@/constants/Dimensions";
+import { GAP } from "@/constants/Dimensions";
 import { router } from "expo-router";
+import { CommunityTaskType } from "@/types/apis";
+import Avatar from "../ui/Avatar";
+import { formatDistance } from "date-fns";
+import MediaGallery from "../ui/MediaGallery";
 
 const { width } = Dimensions.get("screen");
 
-const Task = () => {
+const Task = ({ ...props }: CommunityTaskType) => {
+  const _now = React.useMemo(() => new Date(), []);
+  const _task_location_label = props?.is_remote ? "Remote" : "Athlone";
+
   const _navigate_to_dedicated_route = () =>
     router.push({
       pathname: "/community-tasks/[id]",
       params: {
-        id: "67e0211fd7def1cfbb7e56a3",
+        id: "67e26c9b4cd35e0fdae50a7c",
       },
     });
 
@@ -28,68 +35,45 @@ const Task = () => {
       >
         <XStack justifyContent="space-between" alignItems="center">
           <XStack alignItems="center" gap={GAP}>
-            <Avatar circular size="$4">
-              <Avatar.Image
-                accessibilityLabel="Cam"
-                src="https://images.unsplash.com/photo-1531384441138-2736e62e0919?&w=100&h=100&dpr=2&q=80"
-              />
-              <Avatar.Fallback backgroundColor="$blue10" />
-            </Avatar>
+            <Avatar
+              name={props.owner_details.name}
+              profile_image={props.owner_details.profile_image}
+              size={GAP * 2.5}
+            />
             <YStack>
               <Paragraph fontSize={16} fontWeight="500" numberOfLines={1}>
-                Harshvardhan Thosar
+                {props.owner_details.name}
               </Paragraph>
-              <Paragraph fontSize={12}>Athlone • 5m ago</Paragraph>
+              <Paragraph
+                fontSize={12}
+              >{`${_task_location_label} • ${formatDistance(
+                props?.created_at ?? _now,
+                _now,
+                {
+                  addSuffix: true,
+                }
+              )}`}</Paragraph>
             </YStack>
           </XStack>
         </XStack>
-        <XStack borderRadius={10} gap={2} overflow="hidden">
-          <YStack flex={2}>
-            <Image
-              aspectRatio={TASK_CROP_MAIN_IMAGE_ASPECT_RATIO}
-              alt=""
-              source={{
-                uri: "https://images.squarespace-cdn.com/content/v1/5f96d1beca9a597f9ca38bbe/1608720053171-GJJI8LHSPFF92OJCNY7H/How+to+Create+a+Lawn+Mowing+Business+Name",
-              }}
-            />
-          </YStack>
-          <YStack flex={1} flexDirection="column" gap={2}>
-            <Image
-              flex={1}
-              alt=""
-              source={{
-                uri: "https://images.squarespace-cdn.com/content/v1/5f96d1beca9a597f9ca38bbe/1608720053171-GJJI8LHSPFF92OJCNY7H/How+to+Create+a+Lawn+Mowing+Business+Name",
-              }}
-            />
-            <Image
-              flex={1}
-              alt=""
-              source={{
-                uri: "https://images.squarespace-cdn.com/content/v1/5f96d1beca9a597f9ca38bbe/1608720053171-GJJI8LHSPFF92OJCNY7H/How+to+Create+a+Lawn+Mowing+Business+Name",
-              }}
-            />
-          </YStack>
-        </XStack>
+        <MediaGallery media={props.media} />
         <XStack>
-          <Paragraph numberOfLines={2}>
-            My garden is completely overgrown and needs a major overhaul. We
-            need 2-3 people to help with heavy-duty weeding, pruning, and
-            planting. The work should be completed by the end of the week. It's
-            estimated to take 4-6 hours.
-          </Paragraph>
+          <Paragraph numberOfLines={2}>{props.description}</Paragraph>
         </XStack>
         <XStack alignItems="center" justifyContent="space-between">
           <XStack alignItems="center" gap={4}>
             <Timer size={16} />
-            <Paragraph fontSize={14}>4h</Paragraph>
+            <Paragraph fontSize={14}>{props.hours_required_per_day}h</Paragraph>
           </XStack>
           <XStack alignItems="center" gap={4}>
             <Users size={16} />
-            <Paragraph fontSize={14}>4</Paragraph>
+            <Paragraph fontSize={14}>{props.volunteers_required}</Paragraph>
           </XStack>
           <XStack alignItems="center" gap={4}>
             <CalendarDays size={16} />
-            <Paragraph fontSize={14}>4d</Paragraph>
+            <Paragraph fontSize={14}>
+              {formatDistance(props.starts_at, _now, { addSuffix: true })}
+            </Paragraph>
           </XStack>
         </XStack>
       </YStack>
@@ -102,7 +86,8 @@ export default Task;
 const styles = StyleSheet.create({
   task_container: {
     // dimensions
-    width: "100%",
+    minWidth: (width * 3) / 4,
     maxWidth: (width * 3) / 4,
+    // overflow: "hidden",
   },
 });

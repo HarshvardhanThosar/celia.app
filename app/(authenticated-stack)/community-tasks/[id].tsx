@@ -1,16 +1,10 @@
 import React from "react";
-import {
-  ActivityIndicator,
-  FlatList,
-  RefreshControl,
-  StyleSheet,
-} from "react-native";
+import { ActivityIndicator, FlatList, RefreshControl } from "react-native";
 import { useLocalSearchParams } from "expo-router";
 import { useCommunityTaskById } from "@/hooks/useCommunityTaskById";
 import ScreenWrapper from "@/components/screen-wrapper";
 import {
   Adapt,
-  Avatar,
   Button,
   Dialog,
   Fieldset,
@@ -24,7 +18,7 @@ import {
   YStack,
 } from "tamagui";
 import { GAP } from "@/constants/Dimensions";
-import { CalendarDays, Timer, Users } from "@tamagui/lucide-icons";
+import { CalendarDays, Check, Timer, Users, X } from "@tamagui/lucide-icons";
 import { difference_in_days } from "@/utils/dates";
 import apis from "@/apis";
 import { formatDistance } from "date-fns";
@@ -36,6 +30,9 @@ import StarRating from "@/components/ui/StarRating";
 import * as yup from "yup";
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
+import { ParticipantType } from "@/types/apis";
+import Avatar from "@/components/ui/Avatar";
+import MediaGallery from "@/components/ui/MediaGallery";
 
 // TODO:
 // 1. Show task type and skills in the screen
@@ -58,51 +55,6 @@ const schema = yup
 
 type FormData = yup.InferType<typeof schema>;
 
-const ParticipationTile = ({
-  _id,
-  name,
-  profile_image,
-}: {
-  name: string;
-  profile_image?: string;
-  _id: string;
-}) => {
-  const { data: auth } = Auth.useAuth();
-
-  const _name = _id == auth?._id ? `${name} • You` : name;
-  const _avatar_initials = `${name.split(" ")[0].charAt(0)}${name
-    .split(" ")[1]
-    .charAt(0)}`;
-  return (
-    <XStack alignItems="center" gap={GAP}>
-      <Avatar
-        size={GAP * 3}
-        circular
-        backgroundColor="$background"
-        alignItems="center"
-        justifyContent="center"
-      >
-        {profile_image && (
-          <Avatar.Image accessibilityLabel="Profile" src={profile_image} />
-        )}
-        <Avatar.Fallback alignItems="center" justifyContent="center">
-          <Paragraph fontSize={GAP} textAlign="center">
-            {_avatar_initials}
-          </Paragraph>
-        </Avatar.Fallback>
-      </Avatar>
-      <XStack>
-        <Paragraph fontSize={16} fontWeight="500" numberOfLines={1}>
-          {_name}
-        </Paragraph>
-        <Button onPress={null}>
-          <Button.Text>Accept Participation</Button.Text>
-        </Button>
-      </XStack>
-    </XStack>
-  );
-};
-
 const index = () => {
   const _disable_adapt = false;
   const { data: auth } = Auth.useAuth();
@@ -121,9 +73,6 @@ const index = () => {
     data?.owner_id == auth?._id
       ? `${data?.owner_details.name} • You`
       : data?.owner_details.name;
-  const _avatar_initials = `${data?.owner_details?.name
-    .split(" ")[0]
-    .charAt(0)}${data?.owner_details?.name.split(" ")[1].charAt(0)}`;
   const _task_location_label = data?.is_remote ? "Remote" : "Athlone";
   const _days_label = difference_in_days(
     data?.starts_at ?? _now,
@@ -137,15 +86,23 @@ const index = () => {
   const _days_from_label = formatDistance(data?.starts_at ?? _now, _now, {
     addSuffix: true,
   });
-
+  console.log(data?.participants);
+  const _show_request_participation_button =
+    data?.owner_id !== auth?._id &&
+    !data?.participants.find(({ _id }) => _id === auth?._id);
+  const _show_mark_as_complete_button = data?.owner_id === auth?._id;
+  const _show_mark_attendance_button = data?.participants.find(
+    ({ _id }) => _id === auth?._id
+  );
   const _on_participate = async () => {
     if (!data?._id) return;
     try {
       const _response = await apis.request_participation({
         task_id: data?._id,
       });
-      console.log(_response);
       refetch();
+      const message = _response?.data?.message ?? "Request sent successfully!";
+      Toast.show(message, ToastType.SUCCESS);
     } catch (error: any) {
       const error_message =
         error?.response?.data?.message ||
@@ -155,12 +112,10 @@ const index = () => {
     }
   };
 
-  const _on_mark_as_complete = () => {};
-
   const {
     control,
     handleSubmit,
-    formState: { isSubmitting, isValid, isValidating },
+    formState: { isSubmitting, isValidating },
   } = useForm<FormData>({
     defaultValues: {
       feedback_note: "",
@@ -175,19 +130,125 @@ const index = () => {
     if (!data?._id) return;
     const { feedback_note, rating } = form_data;
     try {
-      // Replace with actual API call
       const _response = await apis.mark_task_as_complete_and_rate({
+        task_id: data?._id,
         feedback_note,
         rating,
-        task_id: data?._id,
       });
-      Toast.show("Feedback submitted successfully!", ToastType.SUCCESS);
-    } catch (error) {
-      Toast.show("Something went wrong!", ToastType.ERROR);
+      const message =
+        _response?.data?.message ?? "Feedback submitted successfully!";
+      Toast.show(message, ToastType.SUCCESS);
+    } catch (error: any) {
+      const error_message =
+        error?.response?.data?.message ||
+        error?.message ||
+        "An error occurred!";
+      Toast.show(error_message, ToastType.ERROR);
     }
   };
 
-  console.log(data);
+  const ParticipationTile = ({
+    _id,
+    name,
+    profile_image,
+    requested_at,
+    status,
+    updated_at,
+    user_id,
+  }: {} & ParticipantType) => {
+    const _now = React.useMemo(() => new Date(), []);
+    // const _show_cancel_request_button = status === "accepted";
+    const _show_cancel_request_button = false;
+    const _show_accept_request_button = status !== "accepted";
+    const _name = user_id == auth?._id ? `${name} • You` : name;
+    const _accept_request = async () => {
+      if (!data?._id) return;
+      try {
+        const _response = await apis.accept_participation({
+          participant_id: user_id,
+          task_id: data?._id,
+        });
+        const message =
+          _response?.data?.message ?? "Request sent successfully!";
+        refetch();
+        Toast.show(message, ToastType.SUCCESS);
+      } catch (error: any) {
+        const error_message =
+          error?.response?.data?.message ||
+          error?.message ||
+          "An error occurred!";
+        Toast.show(error_message, ToastType.ERROR);
+      }
+    };
+
+    const _cancel_request = async () => {
+      if (!data?._id) return;
+      try {
+        const _response = await apis.accept_participation({
+          participant_id: user_id,
+          task_id: data?._id,
+        });
+        const message =
+          _response?.data?.message ?? "Request sent successfully!";
+        refetch();
+        Toast.show(message, ToastType.SUCCESS);
+      } catch (error: any) {
+        const error_message =
+          error?.response?.data?.message ||
+          error?.message ||
+          "An error occurred!";
+        Toast.show(error_message, ToastType.ERROR);
+      }
+    };
+
+    return (
+      <XStack
+        alignItems="center"
+        gap={GAP / 2}
+        p={GAP}
+        borderColor="$color"
+        borderWidth="$0.25"
+        borderRadius="$6"
+      >
+        <Avatar name={name} profile_image={profile_image} size={GAP * 2.5} />
+        <XStack flex={1} gap={GAP} alignItems="center">
+          <YStack flex={1}>
+            <Paragraph fontSize={16} fontWeight="500" numberOfLines={1}>
+              {_name}
+            </Paragraph>
+            <Paragraph fontSize="$2">
+              {status === "requested"
+                ? `Requested ${formatDistance(requested_at, _now)}}`
+                : null}
+              {status === "accepted"
+                ? `Accepted ${formatDistance(updated_at, _now)}}`
+                : null}
+              {status === "rejected"
+                ? `Rejected ${formatDistance(updated_at, _now)}}`
+                : null}
+            </Paragraph>
+          </YStack>
+          <XStack gap={GAP}>
+            {_show_accept_request_button ? (
+              <Button theme="accent" size="$3" p="$2" onPress={_accept_request}>
+                <Check size="$1" />
+              </Button>
+            ) : null}
+            {_show_cancel_request_button ? (
+              <Button
+                theme="error_surface1"
+                size="$3"
+                p="$2"
+                onPress={_cancel_request}
+              >
+                <X size="$1" />
+              </Button>
+            ) : null}
+          </XStack>
+        </XStack>
+      </XStack>
+    );
+  };
 
   const _content = !id ? (
     <YStack gap={GAP} p={GAP}>
@@ -204,27 +265,13 @@ const index = () => {
       </Paragraph>
     </YStack>
   ) : (
-    <YStack gap={GAP} p={GAP}>
-      <XStack alignItems="center" gap={GAP}>
+    <YStack gap={GAP} py={GAP}>
+      <XStack px={GAP} alignItems="center" gap={GAP}>
         <Avatar
+          name={data?.owner_details.name}
+          profile_image={data?.owner_details.profile_image}
           size={GAP * 3}
-          circular
-          backgroundColor="$background"
-          alignItems="center"
-          justifyContent="center"
-        >
-          {data?.owner_details?.profile_image && (
-            <Avatar.Image
-              accessibilityLabel="Profile"
-              src={data?.owner_details?.profile_image}
-            />
-          )}
-          <Avatar.Fallback alignItems="center" justifyContent="center">
-            <Paragraph fontSize={GAP} textAlign="center">
-              {_avatar_initials}
-            </Paragraph>
-          </Avatar.Fallback>
-        </Avatar>
+        />
         <YStack>
           <Paragraph fontSize={16} fontWeight="500" numberOfLines={1}>
             {_name}
@@ -238,8 +285,9 @@ const index = () => {
           </Paragraph>
         </YStack>
       </XStack>
-      <Paragraph>{data?.description}</Paragraph>
-      <XStack alignItems="center" justifyContent="space-between">
+      <Paragraph px={GAP}>{data?.description}</Paragraph>
+      <MediaGallery media={data?.media} variant="list" />
+      <XStack px={GAP} alignItems="center" justifyContent="space-between">
         <XStack alignItems="center" gap={4}>
           <Timer size={16} />
           <Paragraph fontSize={14}>{_hours_label}</Paragraph>
@@ -253,152 +301,182 @@ const index = () => {
           <Paragraph fontSize={14}>{_days_from_label}</Paragraph>
         </XStack>
       </XStack>
-      <YStack>
-        <Paragraph>Rating</Paragraph>
-        <StarRating initialRating={data?.rating} />
-      </YStack>
-
-      <YStack>
-        <Paragraph>Feedback Note</Paragraph>
-        <Paragraph>{data?.feedback_note}</Paragraph>
-      </YStack>
-      <Button onPress={_on_participate}>
-        <Button.Text>Request Participation</Button.Text>
-      </Button>
-      <Button onPress={_on_participate}>
-        <Button.Text>Mark Attendance</Button.Text>
-      </Button>
-      <Dialog>
-        <Dialog.Trigger asChild>
-          <Button>Mark As Complete</Button>
-        </Dialog.Trigger>
-        {!_disable_adapt && (
-          <Adapt when="sm" platform="touch">
-            <Sheet
-              animation="medium"
-              zIndex={200000}
-              modal
-              dismissOnSnapToBottom
-            >
-              <Sheet.Frame padding={GAP} gap={GAP}>
-                <Adapt.Contents />
-              </Sheet.Frame>
-              <Sheet.Overlay
-                backgroundColor="$shadow6"
-                animation="lazy"
-                enterStyle={{ opacity: 0 }}
-                exitStyle={{ opacity: 0 }}
-              />
-            </Sheet>
-          </Adapt>
-        )}
-        <Dialog.Portal>
-          <Dialog.Overlay
-            key="overlay"
-            backgroundColor="$shadow6"
-            animation="slow"
-            enterStyle={{ opacity: 0 }}
-            exitStyle={{ opacity: 0 }}
-          />
-          <Dialog.Content
-            bordered
-            elevate
-            key="content"
-            animateOnly={["transform", "opacity"]}
-            animation={[
-              "quicker",
-              {
-                opacity: {
-                  overshootClamping: true,
+      {(data?.rating ?? 0) > 0 ? (
+        <XStack px={GAP}>
+          <Paragraph>Rating</Paragraph>
+          <StarRating initialRating={data?.rating} />
+        </XStack>
+      ) : null}
+      {data?.feedback_note ? (
+        <XStack px={GAP}>
+          <Paragraph>Feedback Note</Paragraph>
+          <Paragraph>{data?.feedback_note}</Paragraph>
+        </XStack>
+      ) : null}
+      {_show_request_participation_button ? (
+        <XStack px={GAP}>
+          <Button onPress={_on_participate}>
+            <Button.Text>Request Participation</Button.Text>
+          </Button>
+        </XStack>
+      ) : null}
+      {_show_mark_attendance_button ? (
+        <XStack px={GAP}>
+          <Button theme="accent" onPress={_on_participate}>
+            <Button.Text>Mark Attendance</Button.Text>
+          </Button>
+        </XStack>
+      ) : null}
+      {_show_mark_as_complete_button ? (
+        <Dialog>
+          <Dialog.Trigger asChild>
+            <YStack px={GAP}>
+              <Button theme="accent">
+                <Button.Text>Mark As Complete</Button.Text>
+              </Button>
+            </YStack>
+          </Dialog.Trigger>
+          {!_disable_adapt && (
+            <Adapt when="sm" platform="touch">
+              <Sheet
+                animation="medium"
+                zIndex={200000}
+                modal
+                dismissOnSnapToBottom
+              >
+                <Sheet.Frame padding={GAP} gap={GAP}>
+                  <Adapt.Contents />
+                </Sheet.Frame>
+                <Sheet.Overlay
+                  backgroundColor="$shadow6"
+                  animation="lazy"
+                  enterStyle={{ opacity: 0 }}
+                  exitStyle={{ opacity: 0 }}
+                />
+              </Sheet>
+            </Adapt>
+          )}
+          <Dialog.Portal>
+            <Dialog.Overlay
+              key="overlay"
+              backgroundColor="$shadow6"
+              animation="slow"
+              enterStyle={{ opacity: 0 }}
+              exitStyle={{ opacity: 0 }}
+            />
+            <Dialog.Content
+              bordered
+              elevate
+              key="content"
+              animateOnly={["transform", "opacity"]}
+              animation={[
+                "quicker",
+                {
+                  opacity: {
+                    overshootClamping: true,
+                  },
                 },
-              },
-            ]}
-            enterStyle={{ x: 0, y: -20, opacity: 0, scale: 0.9 }}
-            exitStyle={{ x: 0, y: 10, opacity: 0, scale: 0.95 }}
-            gap={GAP}
-          >
-            <Dialog.Title>Are you sure?</Dialog.Title>
-            <Dialog.Description>
-              <YStack>
-                <Paragraph>
-                  Are you sure you want to mark this task as complete?
-                </Paragraph>
-              </YStack>
-            </Dialog.Description>
-            <Form onSubmit={handleSubmit(onMarkAsCompleteSubmit)} gap={GAP}>
-              <Controller
-                control={control}
-                name="feedback_note"
-                render={({ field: { onChange, value, onBlur } }) => (
-                  <Fieldset>
-                    <Label htmlFor="feedback_note">Leave a feedback note</Label>
-                    <TextArea
-                      placeholder="Enter your feedback (optional)"
-                      id="feedback_note"
-                      onBlur={onBlur}
-                      onChangeText={onChange}
-                      value={value}
-                      maxLength={MAX_TASK_DESCRIPTION_LENGTH}
-                      minHeight={GAP}
-                      minBlockSize={GAP}
-                    />
-                    <Paragraph pt={GAP}>
-                      This note would only be visible just to you and the
-                      participants who have worked on this task.
-                    </Paragraph>
-                  </Fieldset>
-                )}
-              />
-              <Controller
-                control={control}
-                name="rating"
-                render={({ field: { value, onChange } }) => (
-                  <Fieldset>
-                    <Label>Please rate the task</Label>
-                    <StarRating
-                      initialRating={value ?? 0}
-                      onRatingChange={onChange}
-                      size={GAP * 2.5}
-                    />
-                  </Fieldset>
-                )}
-              />
-              <YStack gap={GAP}>
-                <Dialog.Close displayWhenAdapted asChild>
-                  <Form.Trigger asChild>
-                    <Button
-                      disabled={_is_disable_submit_button}
-                      theme="accent"
-                      aria-label="Submit"
-                      icon={isSubmitting ? () => <Spinner /> : undefined}
-                    >
-                      <Button.Text>Submit</Button.Text>
+              ]}
+              enterStyle={{ x: 0, y: -20, opacity: 0, scale: 0.9 }}
+              exitStyle={{ x: 0, y: 10, opacity: 0, scale: 0.95 }}
+              gap={GAP}
+            >
+              <Dialog.Title>Are you sure?</Dialog.Title>
+              <Dialog.Description>
+                <YStack>
+                  <Paragraph>
+                    Are you sure you want to mark this task as complete?
+                  </Paragraph>
+                </YStack>
+              </Dialog.Description>
+              <Form onSubmit={handleSubmit(onMarkAsCompleteSubmit)} gap={GAP}>
+                <Controller
+                  control={control}
+                  name="feedback_note"
+                  render={({ field: { onChange, value, onBlur } }) => (
+                    <Fieldset>
+                      <Label htmlFor="feedback_note">
+                        Leave a feedback note
+                      </Label>
+                      <TextArea
+                        placeholder="Enter your feedback (optional)"
+                        id="feedback_note"
+                        onBlur={onBlur}
+                        onChangeText={onChange}
+                        value={value}
+                        maxLength={MAX_TASK_DESCRIPTION_LENGTH}
+                        minHeight={GAP}
+                        minBlockSize={GAP}
+                      />
+                      <Paragraph pt={GAP}>
+                        This note would only be visible just to you and the
+                        participants who have worked on this task.
+                      </Paragraph>
+                    </Fieldset>
+                  )}
+                />
+                <Controller
+                  control={control}
+                  name="rating"
+                  render={({ field: { value, onChange } }) => (
+                    <Fieldset>
+                      <Label>Please rate the task</Label>
+                      <StarRating
+                        initialRating={value ?? 0}
+                        onRatingChange={onChange}
+                        size={GAP * 2.5}
+                      />
+                    </Fieldset>
+                  )}
+                />
+                <YStack gap={GAP}>
+                  <Dialog.Close displayWhenAdapted asChild>
+                    <Form.Trigger asChild>
+                      <Button
+                        disabled={_is_disable_submit_button}
+                        theme="accent"
+                        aria-label="Submit"
+                        icon={isSubmitting ? () => <Spinner /> : undefined}
+                      >
+                        <Button.Text>Submit</Button.Text>
+                      </Button>
+                    </Form.Trigger>
+                  </Dialog.Close>
+                  <Dialog.Close displayWhenAdapted asChild>
+                    <Button theme="alt1" aria-label="Close">
+                      Cancel
                     </Button>
-                  </Form.Trigger>
-                </Dialog.Close>
-                <Dialog.Close displayWhenAdapted asChild>
-                  <Button theme="alt1" aria-label="Close">
-                    Cancel
-                  </Button>
-                </Dialog.Close>
-              </YStack>
-            </Form>
-          </Dialog.Content>
-        </Dialog.Portal>
-      </Dialog>
-      <FlatList
-        scrollEnabled={false}
-        ListHeaderComponent={
-          <Paragraph>{`Participation Requests • ${format_number(
-            data?.participants?.length ?? 0
-          )}`}</Paragraph>
-        }
-        renderItem={
-          ({ index, item }) => null
-          // <ParticipationTile key={index} {...{ item }} />
-        }
-        data={data?.participants}
-      />
+                  </Dialog.Close>
+                </YStack>
+              </Form>
+            </Dialog.Content>
+          </Dialog.Portal>
+        </Dialog>
+      ) : null}
+      {data?.owner_id === auth?._id ? (
+        <YStack px={GAP}>
+          <FlatList
+            scrollEnabled={false}
+            ListHeaderComponent={
+              <Paragraph py={GAP}>{`Participation Requests • ${format_number(
+                data?.participants?.length ?? 0
+              )}`}</Paragraph>
+            }
+            renderItem={({ index, item }) => (
+              <ParticipationTile
+                _id={item._id}
+                name={item.name}
+                requested_at={item?.requested_at}
+                status={item.status}
+                updated_at={item.updated_at}
+                user_id={item.user_id}
+                key={index}
+              />
+            )}
+            data={data?.participants}
+          />
+        </YStack>
+      ) : null}
     </YStack>
   );
 
@@ -414,5 +492,3 @@ const index = () => {
 };
 
 export default index;
-
-const styles = StyleSheet.create({});

@@ -284,7 +284,12 @@ const Register = () => {
               </H5>
             </YStack> */}
             <Form.Trigger asChild>
-              <Button disabled={_is_disable_submit_button}>
+              <Button
+                theme="accent"
+                disabled={_is_disable_submit_button}
+                icon={isSubmitting ? () => <Spinner /> : undefined}
+                mt={GAP * 1.5}
+              >
                 {isSubmitting ? (
                   <Spinner />
                 ) : (
