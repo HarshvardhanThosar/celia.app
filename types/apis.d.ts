@@ -48,16 +48,6 @@ interface DailyAttendanceCodes {
 
 interface AttendanceLog {}
 
-interface Participant {
-  user_id: string;
-  status: string;
-  requested_at: number;
-  updated_at: number;
-  name: string;
-  profile_image: any;
-  _id: string;
-}
-
 export type ParticipantType = {
   _id: string;
   name: string;
@@ -147,6 +137,12 @@ export type RefreshTokenResponseBodyType = ResponseType<{
   token_type: "Bearer";
 }>;
 
+export type ProfileSkill = {
+  skill_id: string;
+  skill_name: string;
+  hours: number;
+};
+
 export type AuthProfileType = {
   _id: string;
   coupons: [];
@@ -160,10 +156,12 @@ export type AuthProfileType = {
   preferred_username: string;
   profile_image: null;
   score: int;
+  coins: int;
   tasks_created: [];
   tasks_participated: [];
   updated_at: string;
   wallet_id: null;
+  skills: ProfileSkill[];
 };
 
 export type FormDataType<T> = {

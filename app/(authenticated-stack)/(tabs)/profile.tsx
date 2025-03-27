@@ -1,5 +1,5 @@
 import React from "react";
-import { Pressable, RefreshControl, StyleSheet } from "react-native";
+import { FlatList, Pressable, RefreshControl, StyleSheet } from "react-native";
 import ScreenWrapper from "@/components/screen-wrapper";
 import Auth from "@/context/auth.context";
 import {
@@ -12,9 +12,11 @@ import {
   View,
   ViewProps,
   H6,
+  Separator,
 } from "tamagui";
 import { GAP } from "@/constants/Dimensions";
 import {
+  CalendarClock,
   Copy,
   Info,
   PowerOff,
@@ -26,8 +28,8 @@ import { unauthenticate_instance } from "@/apis/instance";
 import { format_number } from "@/utils/numbers";
 import { Link } from "expo-router";
 import * as Clipboard from "expo-clipboard";
-import Toast from "@/utils/toasts";
 import useProfile from "@/hooks/useProfile";
+import { ProfileSkill } from "@/types/apis";
 
 const StatTile = ({
   icon,
@@ -200,6 +202,29 @@ const index = () => {
             icon={<SquareArrowOutUpRight size={15} />}
           />
         </XStack>
+        {user?.skills?.length ? (
+          <React.Fragment>
+            <Separator />
+            <FlatList
+              ListHeaderComponent={<H6 textTransform="uppercase">Skills</H6>}
+              numColumns={2}
+              data={user?.skills}
+              renderItem={({ index, item }) => (
+                <StatTile
+                  key={index}
+                  icon={<CalendarClock size={15} />}
+                  label={item.hours == 1 ? "hr" : "hrs"}
+                  stat={item.hours}
+                  title={item.skill_name}
+                  onPress={() => null}
+                  pr={index % 2 == 0 ? GAP / 2 : 0}
+                  pl={index % 2 == 1 ? GAP / 2 : 0}
+                  py={GAP / 2}
+                />
+              )}
+            />
+          </React.Fragment>
+        ) : null}
       </YStack>
     </ScreenWrapper>
   );

@@ -32,11 +32,11 @@ import { useFetchCoupons } from "@/hooks/useCoupons";
 
 const index = () => {
   const skip = 0,
-    limit = 10;
-  const _navigate_to_view_all_community_tasks = () =>
-    router.push("/(authenticated-stack)/community-tasks/listing");
-  const _navigate_to_view_all_coupons = () =>
-    router.push("/(authenticated-stack)/coupons/listing");
+    limit = 1000;
+  // const _navigate_to_view_all_community_tasks = () =>
+  //   router.push("/(authenticated-stack)/community-tasks/listing");
+  // const _navigate_to_view_all_coupons = () =>
+  //   router.push("/(authenticated-stack)/coupons/listing");
   const {
     data: tasks_response,
     isLoading: is_loading_task_response,
@@ -54,10 +54,6 @@ const index = () => {
   } = useFetchCoupons({ limit, skip });
   const is_refreshing =
     !!is_loading_task_response || !!is_loading_profile || !!is_loading_coupons;
-
-  console.log({ is_loading_task_response });
-  console.log({ is_loading_profile });
-  console.log({ is_loading_coupons });
 
   const tasks = tasks_response?.data;
   const refetch = React.useCallback(() => {
@@ -102,12 +98,12 @@ const index = () => {
                 padding={GAP / 4}
                 borderRadius={GAP * 3}
               >
-                {user?.score ? (
+                {user?.coins ? (
                   <React.Fragment>
                     <XStack pl={GAP / 2} alignItems="center" gap={GAP / 3}>
                       <Coins color="$color1" size={14} />
                       <Paragraph color="$color1">
-                        {format_number(user?.score)}
+                        {format_number(user?.coins)}
                       </Paragraph>
                     </XStack>
                     <Paragraph color="$color1"> • </Paragraph>
@@ -248,11 +244,11 @@ const index = () => {
           <YStack gap={GAP * 0.5}>
             <XStack px={GAP} justifyContent="space-between" alignItems="center">
               <H5 textTransform="uppercase">Coupons</H5>
-              <Pressable onPress={_navigate_to_view_all_coupons}>
+              {/* <Pressable onPress={_navigate_to_view_all_coupons}>
                 <H6 textTransform="uppercase" textDecorationLine="underline">
                   View all
                 </H6>
-              </Pressable>
+              </Pressable> */}
             </XStack>
             <FlatList
               horizontal
@@ -273,11 +269,11 @@ const index = () => {
                 alignItems="center"
               >
                 <H5 textTransform="uppercase">Community Tasks</H5>
-                <Pressable onPress={_navigate_to_view_all_community_tasks}>
+                {/* <Pressable onPress={_navigate_to_view_all_community_tasks}>
                   <H6 textTransform="uppercase" textDecorationLine="underline">
                     View all
                   </H6>
-                </Pressable>
+                </Pressable> */}
               </XStack>
               <FlatList
                 horizontal
