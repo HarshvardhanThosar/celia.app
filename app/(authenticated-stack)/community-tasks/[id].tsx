@@ -4,21 +4,34 @@ import { useLocalSearchParams } from "expo-router";
 import { useCommunityTaskById } from "@/hooks/useCommunityTaskById";
 import ScreenWrapper from "@/components/screen-wrapper";
 import {
+  Accordion,
   Adapt,
   Button,
   Dialog,
   Fieldset,
   Form,
+  H5,
+  Input,
   Label,
   Paragraph,
   Sheet,
   Spinner,
   TextArea,
+  TooltipSimple,
+  Unspaced,
+  View,
   XStack,
   YStack,
 } from "tamagui";
 import { GAP } from "@/constants/Dimensions";
-import { CalendarDays, Check, Timer, Users, X } from "@tamagui/lucide-icons";
+import {
+  CalendarDays,
+  Check,
+  ChevronDown,
+  Timer,
+  Users,
+  X,
+} from "@tamagui/lucide-icons";
 import { difference_in_days } from "@/utils/dates";
 import apis from "@/apis";
 import { formatDistance } from "date-fns";
@@ -30,9 +43,10 @@ import StarRating from "@/components/ui/StarRating";
 import * as yup from "yup";
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { ParticipantType } from "@/types/apis";
+import { ParticipantType, TaskStatus } from "@/types/apis";
 import Avatar from "@/components/ui/Avatar";
 import MediaGallery from "@/components/ui/MediaGallery";
+import { Square } from "tamagui";
 
 // TODO:
 // 1. Show task type and skills in the screen
@@ -40,11 +54,6 @@ import MediaGallery from "@/components/ui/MediaGallery";
 // 3. Show distance from current location for non-remote tasks and a get directions button to open maps app.
 // 4. Show 'remote' text for remote tasks
 // 5. Show score that the user would receive on participation.
-
-// (ListRenderItemInfo<{
-//     name: string;
-//     profile_image?: string;
-// }>): React.JSX.Element
 
 const schema = yup
   .object({
@@ -55,8 +64,18 @@ const schema = yup
 
 type FormData = yup.InferType<typeof schema>;
 
+const attendanceSchema = yup
+  .object({
+    code: yup
+      .string()
+      .required("Attendance code is required")
+      .matches(/^\d{4}$/, "Code must be a 4-digit number"),
+  })
+  .required();
+
+type AttendanceFormData = yup.InferType<typeof attendanceSchema>;
+
 const index = () => {
-  const _disable_adapt = false;
   const { data: auth } = Auth.useAuth();
   const params = useLocalSearchParams();
   const id = Array.isArray(params.id) ? params.id[0] : params.id;
@@ -68,7 +87,12 @@ const index = () => {
     isRefetching,
   } = useCommunityTaskById(id);
   const data = response_data?.data?.data;
+  console.log(data?.starts_at);
   const _now = React.useMemo(() => new Date(), []);
+  const today = _now.toISOString().split("T")[0];
+  const show_today_attendance_code =
+    auth?._id === data?.owner_id && data?.daily_attendance_codes?.[today];
+  const todays_code = data?.daily_attendance_codes?.[today];
   const _name =
     data?.owner_id == auth?._id
       ? `${data?.owner_details.name} • You`
@@ -86,13 +110,21 @@ const index = () => {
   const _days_from_label = formatDistance(data?.starts_at ?? _now, _now, {
     addSuffix: true,
   });
-  console.log(data?.participants);
+  const _show_mark_as_complete_button =
+    data?.owner_id === auth?._id &&
+    data?.status !== "completed" &&
+    data?.status !== "invalid";
   const _show_request_participation_button =
     data?.owner_id !== auth?._id &&
     !data?.participants.find(({ _id }) => _id === auth?._id);
-  const _show_mark_as_complete_button = data?.owner_id === auth?._id;
   const _show_mark_attendance_button = data?.participants.find(
-    ({ _id }) => _id === auth?._id
+    ({ _id, status }) => _id === auth?._id && status === "accepted"
+  );
+  const _show_requested_button = data?.participants.find(
+    ({ _id, status }) => _id === auth?._id && status === "requested"
+  );
+  const _show_rejected_button = data?.participants.find(
+    ({ _id, status }) => _id === auth?._id && status === "rejected"
   );
   const _on_participate = async () => {
     if (!data?._id) return;
@@ -124,6 +156,20 @@ const index = () => {
     resolver: yupResolver(schema),
   });
 
+  const {
+    control: attendanceControl,
+    handleSubmit: handleAttendanceSubmit,
+    formState: {
+      isSubmitting: isAttendanceSubmitting,
+      isValidating: isAttendanceValidating,
+    },
+  } = useForm<AttendanceFormData>({
+    defaultValues: {
+      code: "",
+    },
+    resolver: yupResolver(attendanceSchema),
+  });
+
   const _is_disable_submit_button = isSubmitting || isValidating;
 
   const onMarkAsCompleteSubmit: SubmitHandler<FormData> = async (form_data) => {
@@ -147,8 +193,30 @@ const index = () => {
     }
   };
 
+  const _onMarkAttendanceSubmit: SubmitHandler<AttendanceFormData> = async ({
+    code,
+  }) => {
+    if (data?._id)
+      try {
+        const _response = await apis.mark_attendance({
+          task_id: data?._id,
+          code,
+        });
+        Toast.show(
+          _response?.data?.message ?? "Attendance marked!",
+          ToastType.SUCCESS
+        );
+        refetch();
+      } catch (error: any) {
+        const error_message =
+          error?.response?.data?.message ||
+          error?.message ||
+          "An error occurred!";
+        Toast.show(error_message, ToastType.ERROR);
+      }
+  };
+
   const ParticipationTile = ({
-    _id,
     name,
     profile_image,
     requested_at,
@@ -218,13 +286,13 @@ const index = () => {
             </Paragraph>
             <Paragraph fontSize="$2">
               {status === "requested"
-                ? `Requested ${formatDistance(requested_at, _now)}}`
+                ? `Requested ${formatDistance(requested_at, _now)}`
                 : null}
               {status === "accepted"
-                ? `Accepted ${formatDistance(updated_at, _now)}}`
+                ? `Accepted ${formatDistance(updated_at, _now)}`
                 : null}
               {status === "rejected"
-                ? `Rejected ${formatDistance(updated_at, _now)}}`
+                ? `Rejected ${formatDistance(updated_at, _now)}`
                 : null}
             </Paragraph>
           </YStack>
@@ -287,6 +355,7 @@ const index = () => {
       </XStack>
       <Paragraph px={GAP}>{data?.description}</Paragraph>
       <MediaGallery media={data?.media} variant="list" />
+
       <XStack px={GAP} alignItems="center" justifyContent="space-between">
         <XStack alignItems="center" gap={4}>
           <Timer size={16} />
@@ -301,61 +370,100 @@ const index = () => {
           <Paragraph fontSize={14}>{_days_from_label}</Paragraph>
         </XStack>
       </XStack>
+      <YStack px={GAP}>
+        <Accordion overflow="hidden" type="single" borderWidth={0}>
+          <Accordion.Item value="a1">
+            <Accordion.Trigger
+              flexDirection="row"
+              justifyContent="space-between"
+              borderWidth={0}
+            >
+              {({ open }: { open: boolean }) => (
+                <>
+                  <Paragraph>Score breakdown</Paragraph>
+                  <Square animation="quick" rotate={open ? "180deg" : "0deg"}>
+                    <ChevronDown size="$1" />
+                  </Square>
+                </>
+              )}
+            </Accordion.Trigger>
+            <Accordion.HeightAnimator animation="medium">
+              <Accordion.Content
+                animation="medium"
+                exitStyle={{ opacity: 0 }}
+                background="red"
+              >
+                <FlatList
+                  scrollEnabled={false}
+                  data={data?.score_breakdown}
+                  renderItem={({ index, item }) =>
+                    item?.score > 0 && item.key != "random_hook" ? (
+                      <XStack key={index}>
+                        <Paragraph flex={1}>{item?.label}</Paragraph>
+                        <XStack justifyContent="space-between" w="$5">
+                          <Paragraph>•</Paragraph>
+                          <Paragraph>{item.score}</Paragraph>
+                        </XStack>
+                      </XStack>
+                    ) : null
+                  }
+                />
+              </Accordion.Content>
+            </Accordion.HeightAnimator>
+          </Accordion.Item>
+        </Accordion>
+      </YStack>
+      {show_today_attendance_code ? (
+        <YStack px={GAP}>
+          <Paragraph>Today's attendance code</Paragraph>
+          <H5>{todays_code}</H5>
+        </YStack>
+      ) : null}
       {(data?.rating ?? 0) > 0 ? (
-        <XStack px={GAP}>
+        <YStack px={GAP}>
           <Paragraph>Rating</Paragraph>
           <StarRating initialRating={data?.rating} />
-        </XStack>
+        </YStack>
       ) : null}
       {data?.feedback_note ? (
-        <XStack px={GAP}>
+        <YStack px={GAP}>
           <Paragraph>Feedback Note</Paragraph>
           <Paragraph>{data?.feedback_note}</Paragraph>
-        </XStack>
+        </YStack>
       ) : null}
       {_show_request_participation_button ? (
-        <XStack px={GAP}>
+        <YStack px={GAP}>
           <Button onPress={_on_participate}>
             <Button.Text>Request Participation</Button.Text>
           </Button>
-        </XStack>
+        </YStack>
       ) : null}
-      {_show_mark_attendance_button ? (
-        <XStack px={GAP}>
-          <Button theme="accent" onPress={_on_participate}>
-            <Button.Text>Mark Attendance</Button.Text>
-          </Button>
-        </XStack>
-      ) : null}
+
       {_show_mark_as_complete_button ? (
-        <Dialog>
+        <Dialog modal key="mark_as_complete">
           <Dialog.Trigger asChild>
-            <YStack px={GAP}>
-              <Button theme="accent">
-                <Button.Text>Mark As Complete</Button.Text>
-              </Button>
-            </YStack>
+            <Button theme="accent" mx={GAP}>
+              <Button.Text>Mark As Complete</Button.Text>
+            </Button>
           </Dialog.Trigger>
-          {!_disable_adapt && (
-            <Adapt when="sm" platform="touch">
-              <Sheet
-                animation="medium"
-                zIndex={200000}
-                modal
-                dismissOnSnapToBottom
-              >
-                <Sheet.Frame padding={GAP} gap={GAP}>
-                  <Adapt.Contents />
-                </Sheet.Frame>
-                <Sheet.Overlay
-                  backgroundColor="$shadow6"
-                  animation="lazy"
-                  enterStyle={{ opacity: 0 }}
-                  exitStyle={{ opacity: 0 }}
-                />
-              </Sheet>
-            </Adapt>
-          )}
+          <Adapt when="sm" platform="touch">
+            <Sheet
+              animation="medium"
+              zIndex={200000}
+              modal
+              dismissOnSnapToBottom
+            >
+              <Sheet.Frame padding={GAP} gap={GAP}>
+                <Adapt.Contents />
+              </Sheet.Frame>
+              <Sheet.Overlay
+                backgroundColor="$shadow6"
+                animation="lazy"
+                enterStyle={{ opacity: 0 }}
+                exitStyle={{ opacity: 0 }}
+              />
+            </Sheet>
+          </Adapt>
           <Dialog.Portal>
             <Dialog.Overlay
               key="overlay"
@@ -437,6 +545,113 @@ const index = () => {
                         theme="accent"
                         aria-label="Submit"
                         icon={isSubmitting ? () => <Spinner /> : undefined}
+                      >
+                        <Button.Text>Submit</Button.Text>
+                      </Button>
+                    </Form.Trigger>
+                  </Dialog.Close>
+                  <Dialog.Close displayWhenAdapted asChild>
+                    <Button theme="alt1" aria-label="Close">
+                      Cancel
+                    </Button>
+                  </Dialog.Close>
+                </YStack>
+              </Form>
+            </Dialog.Content>
+          </Dialog.Portal>
+        </Dialog>
+      ) : null}
+      {_show_requested_button ? (
+        <XStack px={GAP}>
+          <Button flex={1} disabled variant="outlined" chromeless>
+            <Button.Text>Requested</Button.Text>
+          </Button>
+        </XStack>
+      ) : _show_rejected_button ? (
+        <XStack px={GAP}>
+          <Button flex={1} disabled variant="outlined" chromeless>
+            <Button.Text>Rejected</Button.Text>
+          </Button>
+        </XStack>
+      ) : null}
+      {_show_mark_attendance_button ? (
+        <Dialog modal key="mark_attendance">
+          <Dialog.Trigger asChild>
+            <Button theme="accent" mx={GAP}>
+              <Button.Text>Mark Attendance</Button.Text>
+            </Button>
+          </Dialog.Trigger>
+          <Adapt when="sm" platform="touch">
+            <Sheet
+              animation="medium"
+              zIndex={200000}
+              modal
+              dismissOnSnapToBottom
+            >
+              <Sheet.Frame padding={GAP} gap={GAP}>
+                <Adapt.Contents />
+              </Sheet.Frame>
+              <Sheet.Overlay backgroundColor="$shadow6" animation="lazy" />
+            </Sheet>
+          </Adapt>
+          <Dialog.Portal>
+            <Dialog.Overlay backgroundColor="$shadow6" animation="slow" />
+            <Dialog.Content
+              bordered
+              elevate
+              animation="quicker"
+              enterStyle={{ x: 0, y: -20, opacity: 0, scale: 0.9 }}
+              exitStyle={{ x: 0, y: 10, opacity: 0, scale: 0.95 }}
+              gap={GAP}
+            >
+              <Dialog.Title>Mark your attendance</Dialog.Title>
+              <Dialog.Description>
+                <Paragraph>
+                  Please enter today's 4-digit attendance code to claim your
+                  score.
+                </Paragraph>
+              </Dialog.Description>
+              <Form
+                onSubmit={handleAttendanceSubmit(_onMarkAttendanceSubmit)}
+                gap={GAP}
+              >
+                <Controller
+                  control={attendanceControl}
+                  name="code"
+                  render={({
+                    field: { onChange, value, onBlur },
+                    fieldState,
+                  }) => (
+                    <Fieldset>
+                      <Label htmlFor="code">Attendance Code</Label>
+                      <Input
+                        id="code"
+                        keyboardType="numeric"
+                        maxLength={4}
+                        value={value}
+                        onChangeText={onChange}
+                        onBlur={onBlur}
+                        placeholder="Attendance code from the creator of the task"
+                      />
+                      {fieldState.error?.message && (
+                        <Paragraph color="$red10">
+                          {fieldState.error.message}
+                        </Paragraph>
+                      )}
+                    </Fieldset>
+                  )}
+                />
+                <YStack gap={GAP}>
+                  <Dialog.Close displayWhenAdapted asChild>
+                    <Form.Trigger asChild>
+                      <Button
+                        disabled={
+                          isAttendanceSubmitting || isAttendanceValidating
+                        }
+                        theme="accent"
+                        icon={
+                          isAttendanceSubmitting ? () => <Spinner /> : undefined
+                        }
                       >
                         <Button.Text>Submit</Button.Text>
                       </Button>

@@ -19,30 +19,29 @@ const unauthenticate_instance = () => {
   delete instance.defaults.headers.common.Authorization;
 };
 
-// Interceptor
-instance.interceptors.response.use(
-  (response) => response,
-  async (error) => {
-    if (error?.response?.status === 401 || error?.response?.status === 403) {
-      await logout(); // You can later inject pathname if needed
-    }
-    return Promise.reject(error);
-  }
-);
+// // Interceptor
+// instance.interceptors.response.use(
+//   (response) => response,
+//   async (error) => {
+//     if (error?.response?.status === 401 || error?.response?.status === 403) {
+//       await logout(); // You can later inject pathname if needed
+//     }
+//     return Promise.reject(error);
+//   }
+// );
 
-const logout = async (currentPath?: string) => {
-  console.log("🔒 Logging out user...");
-  await storage.reset(STORAGE_KEYS.access);
-  await storage.reset(STORAGE_KEYS.refresh);
-  unauthenticate_instance();
+// const logout = async (currentPath?: string) => {
+//   await storage.reset(STORAGE_KEYS.access);
+//   await storage.reset(STORAGE_KEYS.refresh);
+//   unauthenticate_instance();
 
-  const _is_already_logged_out = currentPath?.startsWith(
-    "/(unauthenticated-stack)"
-  );
+//   const _is_already_logged_out = currentPath?.startsWith(
+//     "/(unauthenticated-stack)"
+//   );
 
-  if (!_is_already_logged_out) {
-    router.replace("/(unauthenticated-stack)"); // send to login
-  }
-};
+//   if (!_is_already_logged_out) {
+//     router.replace("/(unauthenticated-stack)"); // send to login
+//   }
+// };
 
-export { instance, authenticate_instance, unauthenticate_instance, logout };
+export { instance, authenticate_instance, unauthenticate_instance };

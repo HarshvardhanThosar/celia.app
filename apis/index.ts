@@ -117,6 +117,7 @@ const apis = {
    * @returns
    */
   create_task: async (body: CreateTaskFormType) => {
+    console.log(JSON.stringify(body));
     return instance.post<CreateTaskResponseBodyType>("/community/tasks/", body);
   },
 
@@ -182,7 +183,7 @@ const apis = {
     task_id: string;
     code: string;
   }) => {
-    return instance.post(`/community/tasks/${task_id}/mark-attendance`, {
+    return instance.post(`/community/tasks/mark-attendance`, {
       task_id,
       code,
     });

@@ -80,7 +80,6 @@ const StatTile = ({
 const index = () => {
   const [is_refreshing, set_is_refresh] = React.useState(false);
   const { data: user, set, reset, isLoading } = Auth.useAuth();
-
   const _id = React.useMemo(() => user?._id, [user]);
   const _score = React.useMemo(() => format_number(user?.score ?? 0), [user]);
   const _tasks_participated_count = React.useMemo(
@@ -105,7 +104,6 @@ const index = () => {
     unauthenticate_instance();
     reset();
   }, []);
-
   const _fetch_user_profile = React.useCallback(async () => {
     apis
       .fetch_logged_in_user_profile()

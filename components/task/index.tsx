@@ -19,7 +19,7 @@ const Task = ({ ...props }: CommunityTaskType) => {
     router.push({
       pathname: "/community-tasks/[id]",
       params: {
-        id: "67e26c9b4cd35e0fdae50a7c",
+        id: props._id,
       },
     });
 

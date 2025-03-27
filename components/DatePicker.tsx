@@ -3,6 +3,7 @@ import { Pressable, Platform } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { XStack, Input, TamaguiElement, StackProps } from "tamagui";
 import { Calendar, Clock } from "@tamagui/lucide-icons";
+import { GAP } from "@/constants/Dimensions";
 
 type IOSMode = "date" | "time" | "datetime" | "countdown";
 type AndroidMode = "date" | "time";
@@ -87,9 +88,9 @@ const CustomDateTimePicker = React.forwardRef<TamaguiElement, DatePickerProps>(
               }
             />
             <XStack paddingRight={10} position="absolute">
-              {mode === "date" && <Calendar />}
-              {mode === "time" && <Clock />}
-              {mode === "datetime" && <Calendar />}
+              {mode === "date" && <Calendar size={GAP} />}
+              {mode === "time" && <Clock size={GAP} />}
+              {mode === "datetime" && <Calendar size={GAP} />}
             </XStack>
           </XStack>
         </Pressable>

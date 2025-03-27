@@ -8,6 +8,7 @@ import { queryClient } from "./client";
 import apis from "@/apis";
 import {
   authenticate_instance,
+  instance,
   unauthenticate_instance,
 } from "@/apis/instance";
 import storage, { STORAGE_KEYS } from "@/utils/storage";
@@ -37,6 +38,7 @@ const AuthWrapper = ({ children }: React.PropsWithChildren) => {
   const router = useRouter();
 
   const logout = React.useCallback(async () => {
+    console.log("Logging out user");
     await storage.reset(STORAGE_KEYS.access);
     await storage.reset(STORAGE_KEYS.refresh);
     reset();
@@ -45,7 +47,6 @@ const AuthWrapper = ({ children }: React.PropsWithChildren) => {
 
   React.useLayoutEffect(() => {
     console.log(process.env?.EXPO_PUBLIC_API_URL);
-
     (async () => {
       const _stored_access_token = await storage
         .get<string>(STORAGE_KEYS.access)
@@ -102,12 +103,24 @@ const AuthWrapper = ({ children }: React.PropsWithChildren) => {
       }
       set_show_loader(false);
       set_is_ready(true);
+
+      instance.interceptors.response.use(
+        (response) => response,
+        async (error) => {
+          if (
+            error?.response?.status === 401 ||
+            error?.response?.status === 403
+          ) {
+            await logout(); // You can later inject pathname if needed
+          }
+          return Promise.reject(error);
+        }
+      );
     })();
   }, []);
 
   React.useEffect(() => {
     if (!is_ready) return;
-
     const handle_app_state_change = (nextAppState: AppStateStatus) => {
       switch (nextAppState) {
         case "active":
@@ -139,17 +152,14 @@ const AuthWrapper = ({ children }: React.PropsWithChildren) => {
           break;
       }
     };
-
     const app_intercation_subscription = AppState.addEventListener(
       "change",
       handle_app_state_change
     );
-
     const is_accessing_authenticated_routes =
       route_segments[0] === "(authenticated-stack)";
     const is_accessing_unauthenticated_routes =
       route_segments[0] === "(unauthenticated-stack)";
-
     if (is_ready) {
       if (!user && is_accessing_authenticated_routes) {
         router.replace("/"); // Redirect to login
@@ -157,7 +167,6 @@ const AuthWrapper = ({ children }: React.PropsWithChildren) => {
         router.replace("/(authenticated-stack)/(tabs)/home"); // Redirect to home
       }
     }
-
     return () => {
       app_intercation_subscription.remove();
     };

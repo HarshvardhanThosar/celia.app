@@ -12,7 +12,7 @@ import {
   XStack,
   YStack,
 } from "tamagui";
-import { Coins, Plus } from "@tamagui/lucide-icons";
+import { Coins, Flame, Plus } from "@tamagui/lucide-icons";
 
 // C O M P O N E N T S
 import ScreenWrapper from "@/components/screen-wrapper";
@@ -30,15 +30,13 @@ import useCommunityTask from "@/hooks/useCommunityTasks";
 const index = () => {
   const skip = 0,
     limit = 10;
-  const _navigate_to_view_all_community_tasks = () =>
-    router.push("/(authenticated-stack)/community-tasks/listing");
-  const _navigate_to_view_all_coupons = () =>
-    router.push("/(authenticated-stack)/coupons/listing");
+  // const _navigate_to_view_all_community_tasks = () =>
+  //   router.push("/(authenticated-stack)/community-tasks/listing");
+  // const _navigate_to_view_all_coupons = () =>
+  //   router.push("/(authenticated-stack)/coupons/listing");
   const { data: community_tasks_response } = useCommunityTask({ skip, limit });
   const tasks = community_tasks_response?.data.data;
   const { data: user } = Auth.useAuth();
-
-  console.log(tasks);
 
   return (
     <React.Fragment>
@@ -63,24 +61,44 @@ const index = () => {
                 celia.
               </H1>
             </YStack>
-            <XStack
-              alignItems="center"
-              justifyContent="center"
-              gap={GAP}
-              backgroundColor="$color9"
-              padding={GAP / 4}
-              borderRadius={GAP * 3}
-            >
-              <XStack pl={GAP} alignItems="center" gap={GAP / 3}>
-                <Coins size={14} />
-                <Paragraph>{format_number(user?.score)}</Paragraph>
+            <Pressable onPress={() => router.navigate("/profile")}>
+              <XStack
+                alignItems="center"
+                justifyContent="center"
+                gap={GAP / 2}
+                backgroundColor="$color9"
+                padding={GAP / 4}
+                borderRadius={GAP * 3}
+              >
+                {user?.score ? (
+                  <React.Fragment>
+                    <XStack pl={GAP / 2} alignItems="center" gap={GAP / 3}>
+                      <Coins color="$color1" size={14} />
+                      <Paragraph color="$color1">
+                        {format_number(user?.score)}
+                      </Paragraph>
+                    </XStack>
+                    <Paragraph color="$color1"> • </Paragraph>
+                  </React.Fragment>
+                ) : null}
+                {user?.streak ? (
+                  <React.Fragment>
+                    <XStack alignItems="center" gap={GAP / 3}>
+                      <Flame color="$color1" size={14} />
+                      <Paragraph color="$color1">
+                        {format_number(user?.streak)}
+                      </Paragraph>
+                    </XStack>
+                    <Paragraph color="$color1"> • </Paragraph>
+                  </React.Fragment>
+                ) : null}
+                <Avatar
+                  profile_image={user?.profile_image}
+                  name={user?.name}
+                  size={GAP * 2.5}
+                />
               </XStack>
-              <Avatar
-                profile_image={user?.profile_image}
-                name={user?.name}
-                size={GAP * 2.5}
-              />
-            </XStack>
+            </Pressable>
           </XStack>
           <YStack px={GAP} py={GAP * 2} gap={GAP} backgroundColor="#44463e">
             <YStack gap={GAP / 2}>
@@ -147,60 +165,62 @@ const index = () => {
               objectFit="contain"
             />
           </YStack>
-          <YStack
-            px={GAP}
-            py={GAP * 2}
-            mt={-2 * GAP}
-            gap={GAP}
-            backgroundColor="#c5a57d"
-            overflow="hidden"
-          >
-            <YStack gap={GAP / 2}>
-              <H2
-                fontSize={20}
-                lineHeight={20}
-                color="#44463e"
-                style={{
-                  fontFamily: "AbrilFatface",
-                  fontWeight: "bold",
-                  letterSpacing: 1,
-                }}
-              >
-                Your Social Contributions
-              </H2>
-              <H3
-                fontSize={32}
-                lineHeight={32}
-                color="#44463e"
-                style={{
-                  fontFamily: "AbrilFatface",
-                  fontWeight: "bold",
-                  letterSpacing: 1,
-                }}
-              >
-                {format_number(45)} tasks
-              </H3>
+          {user?.tasks_participated?.length ? (
+            <YStack
+              px={GAP}
+              py={GAP * 2}
+              mt={-2 * GAP}
+              gap={GAP}
+              backgroundColor="#c5a57d"
+              overflow="hidden"
+            >
+              <YStack gap={GAP / 2}>
+                <H2
+                  fontSize={20}
+                  lineHeight={20}
+                  color="#44463e"
+                  style={{
+                    fontFamily: "AbrilFatface",
+                    fontWeight: "bold",
+                    letterSpacing: 1,
+                  }}
+                >
+                  Your Social Contributions
+                </H2>
+                <H3
+                  fontSize={32}
+                  lineHeight={32}
+                  color="#44463e"
+                  style={{
+                    fontFamily: "AbrilFatface",
+                    fontWeight: "bold",
+                    letterSpacing: 1,
+                  }}
+                >
+                  {format_number(user?.tasks_participated?.length ?? 0)} tasks
+                </H3>
+              </YStack>
+              <Image
+                alt=""
+                source={require("../../../assets/images/thank-you.png")}
+                h={200}
+                w={200}
+                position="absolute"
+                r={-25}
+                b={-75}
+                zIndex={-1}
+                objectFit="contain"
+              />
             </YStack>
-            <Image
-              alt=""
-              source={require("../../../assets/images/thank-you.png")}
-              h={200}
-              w={200}
-              position="absolute"
-              r={-25}
-              b={-75}
-              zIndex={-1}
-              objectFit="contain"
-            />
-          </YStack>
+          ) : null}
           <YStack gap={GAP * 0.5}>
             <XStack px={GAP} justifyContent="space-between" alignItems="center">
               <H5 textTransform="uppercase">Coupons</H5>
-              <Pressable onPress={_navigate_to_view_all_coupons}>
+              {/* <Pressable onPress={_navigate_to_view_all_coupons}>
                 <H6 textTransform="uppercase" textDecorationLine="underline">
                   View all
                 </H6>
-              </Pressable>
+              </Pressable> */}
             </XStack>
             <FlatList
               horizontal
@@ -221,11 +241,11 @@ const index = () => {
                 alignItems="center"
               >
                 <H5 textTransform="uppercase">Community Tasks</H5>
-                <Pressable onPress={_navigate_to_view_all_community_tasks}>
+                {/* <Pressable onPress={_navigate_to_view_all_community_tasks}>
                   <H6 textTransform="uppercase" textDecorationLine="underline">
                     View all
                   </H6>
-                </Pressable>
+                </Pressable> */}
               </XStack>
               <FlatList
                 horizontal

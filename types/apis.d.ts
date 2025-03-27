@@ -9,6 +9,55 @@ export type LocationType = {
 
 export type MediaType = string[];
 
+export type TaskStatus = "completed" | "invalid" | "active";
+
+export type CommunityTaskType = {
+  _id: string;
+  owner_id: string;
+  description: string;
+  volunteers_required: number;
+  hours_required_per_day: number;
+  starts_at: string;
+  completes_at: string;
+  is_remote: boolean;
+  location: any;
+  score_breakdown: ScoreBreakdown[];
+  daily_attendance_codes: DailyAttendanceCodes;
+  attendance_log: AttendanceLog;
+  score_assignment_status: string;
+  status: TaskStatus;
+  priority: string;
+  participants: ParticipantType[];
+  media?: string[];
+  rating: any;
+  feedback_note: any;
+  created_at: string;
+  updated_at: string;
+  owner_details: OwnerDetails;
+};
+
+export interface ScoreBreakdown {
+  label: string;
+  key: string;
+  score: number;
+}
+
+interface DailyAttendanceCodes {
+  [x: string]: string;
+}
+
+interface AttendanceLog {}
+
+interface Participant {
+  user_id: string;
+  status: string;
+  requested_at: number;
+  updated_at: number;
+  name: string;
+  profile_image: any;
+  _id: string;
+}
+
 export type ParticipantType = {
   _id: string;
   name: string;
@@ -19,27 +68,11 @@ export type ParticipantType = {
   user_id: string;
 };
 
-export type CommunityTaskType = {
+export interface OwnerDetails {
+  name: string;
+  profile_image: any;
   _id: string;
-  completes_at: string;
-  created_at: string;
-  description: string;
-  feedback_note?: unknown;
-  hours_required_per_day: number;
-  is_remote: boolean;
-  location: LocationType;
-  media?: string[];
-  owner_details: { name: string; profile_image?: string };
-  owner_id: string;
-  participants: ParticipantType[];
-  priority: string;
-  rating?: number;
-  score_assignment_status: string;
-  starts_at: string;
-  status: string;
-  updated_at: string;
-  volunteers_required: number;
-};
+}
 
 export type RegisterNewUserRequestBodyType = {
   // username: string;
@@ -120,6 +153,7 @@ export type AuthProfileType = {
   created_at: string;
   email: string;
   email_verified: true;
+  streak?: number;
   family_name: string;
   given_name: string;
   name: string;
