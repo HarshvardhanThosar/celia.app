@@ -20,6 +20,7 @@ import { GAP } from "@/constants/Dimensions";
 import Toast, { ToastType } from "@/utils/toasts";
 import mixpanel from "@/services/mixpanel";
 import MixpanelEvents from "@/services/mixpanel-events";
+import useProfile from "@/hooks/useProfile";
 
 const useAuth = createGlobalState<User | undefined>(["auth"], undefined);
 
@@ -31,6 +32,7 @@ const Provider = ({ children }: React.PropsWithChildren) => (
 
 const AuthWrapper = ({ children }: React.PropsWithChildren) => {
   const { data: user, set, reset } = useAuth();
+  const { data: profile, refetch: refetch_profile } = useProfile();
   const animation = React.useRef<LottieView>(null);
   const [show_loader, set_show_loader] = React.useState(true);
   const [is_ready, set_is_ready] = React.useState(false);
@@ -76,7 +78,7 @@ const AuthWrapper = ({ children }: React.PropsWithChildren) => {
           try {
             const _profile_response = await apis.fetch_logged_in_user_profile();
             set(_profile_response.data.data);
-
+            refetch_profile();
             mixpanel.identify(_profile_response.data.data._id);
             mixpanel.getPeople().set("$name", _profile_response.data.data.name);
             mixpanel

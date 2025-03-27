@@ -2,6 +2,8 @@ import type {
   CreateTaskFormType,
   CreateTaskResponseBodyType,
   FetchLoggedInUserProfileResponseBodyType,
+  FetchRetailItemById,
+  FetchRetailItems,
   FetchTaskById,
   FetchTasks,
   LoginWithUsernameAndPasswordRequestBodyType,
@@ -117,7 +119,6 @@ const apis = {
    * @returns
    */
   create_task: async (body: CreateTaskFormType) => {
-    console.log(JSON.stringify(body));
     return instance.post<CreateTaskResponseBodyType>("/community/tasks/", body);
   },
 
@@ -269,7 +270,24 @@ const apis = {
   fetch_coupons: async ({
     skip = 0,
     limit = 10,
-  }: PaginationQueryParamsType) => {},
+  }: PaginationQueryParamsType) => {
+    const params = new URLSearchParams();
+    if (skip) params.set("skip", skip.toString());
+    if (limit) params.set("limit", limit.toString());
+    return instance.get<FetchRetailItems>(
+      `/community/retail/items?${params.toString()}`
+    );
+  },
+
+  /**
+   * Fetch coupon by id
+   * @param query_params
+   * @param query_params.skip number - default 0
+   * @param query_params.limit number - default 10
+   */
+  fetch_coupon_by_id: async ({ id }: { id: string }) => {
+    return instance.get<FetchRetailItemById>(`/community/retail/items/${id}`);
+  },
 
   /**
    * Fetch coupons

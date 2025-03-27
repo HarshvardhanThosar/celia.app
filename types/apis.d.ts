@@ -205,3 +205,24 @@ export type CreateTaskResponseBodyType = ResponseType<{
 export type FetchTaskById = ResponseType<CommunityTaskType>;
 
 export type FetchTasks = ResponseType<CommunityTaskType[]>;
+
+export type RetailItem = {
+  _id: string;
+  name: string;
+  points: number;
+  category: string;
+  thumbnail: string;
+  quantity: number;
+  expiry_date: string;
+  sku_id: null;
+  weight: number;
+  retailer: {
+    id: string;
+    name: string;
+    store: string;
+  };
+};
+
+export type FetchRetailItemById = ResponseType<RetailItem>;
+
+export type FetchRetailItems = ResponseType<RetailItem[]>;

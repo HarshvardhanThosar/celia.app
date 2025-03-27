@@ -1,7 +1,7 @@
 import React from "react";
 import { ActivityIndicator, FlatList, RefreshControl } from "react-native";
 import { useLocalSearchParams } from "expo-router";
-import { useCommunityTaskById } from "@/hooks/useCommunityTaskById";
+import useCommunityTaskById from "@/hooks/useCommunityTaskById";
 import ScreenWrapper from "@/components/screen-wrapper";
 import {
   Accordion,
@@ -17,9 +17,6 @@ import {
   Sheet,
   Spinner,
   TextArea,
-  TooltipSimple,
-  Unspaced,
-  View,
   XStack,
   YStack,
 } from "tamagui";
@@ -28,6 +25,7 @@ import {
   CalendarDays,
   Check,
   ChevronDown,
+  Coins,
   Timer,
   Users,
   X,
@@ -35,7 +33,6 @@ import {
 import { difference_in_days } from "@/utils/dates";
 import apis from "@/apis";
 import { formatDistance } from "date-fns";
-import Auth from "@/context/auth.context";
 import { format_number } from "@/utils/numbers";
 import Toast, { ToastType } from "@/utils/toasts";
 import { MAX_TASK_DESCRIPTION_LENGTH } from "@/constants/Validations";
@@ -43,10 +40,11 @@ import StarRating from "@/components/ui/StarRating";
 import * as yup from "yup";
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { ParticipantType, TaskStatus } from "@/types/apis";
+import { ParticipantType } from "@/types/apis";
 import Avatar from "@/components/ui/Avatar";
 import MediaGallery from "@/components/ui/MediaGallery";
 import { Square } from "tamagui";
+import useProfile from "@/hooks/useProfile";
 
 // TODO:
 // 1. Show task type and skills in the screen
@@ -76,7 +74,7 @@ const attendanceSchema = yup
 type AttendanceFormData = yup.InferType<typeof attendanceSchema>;
 
 const index = () => {
-  const { data: auth } = Auth.useAuth();
+  const { data: auth } = useProfile();
   const params = useLocalSearchParams();
   const id = Array.isArray(params.id) ? params.id[0] : params.id;
   const {
@@ -86,8 +84,7 @@ const index = () => {
     refetch,
     isRefetching,
   } = useCommunityTaskById(id);
-  const data = response_data?.data?.data;
-  console.log(data?.starts_at);
+  const data = response_data?.data;
   const _now = React.useMemo(() => new Date(), []);
   const today = _now.toISOString().split("T")[0];
   const show_today_attendance_code =
@@ -126,6 +123,12 @@ const index = () => {
   const _show_rejected_button = data?.participants.find(
     ({ _id, status }) => _id === auth?._id && status === "rejected"
   );
+  const _score = React.useMemo(() => {
+    return data?.score_breakdown?.reduce(
+      (acc, item) => acc + (item?.score ?? 0),
+      0
+    );
+  }, [data?.score_breakdown]);
   const _on_participate = async () => {
     if (!data?._id) return;
     try {
@@ -329,7 +332,7 @@ const index = () => {
   ) : error ? (
     <YStack gap={GAP} p={GAP}>
       <Paragraph color="$red10">
-        {response_data?.data.message ?? "Error: something went wrong!"}
+        {response_data?.message ?? "Error: something went wrong!"}
       </Paragraph>
     </YStack>
   ) : (
@@ -364,6 +367,12 @@ const index = () => {
         <XStack alignItems="center" gap={4}>
           <Users size={16} />
           <Paragraph fontSize={14}>{_volunteer_required_label}</Paragraph>
+        </XStack>
+      </XStack>
+      <XStack px={GAP} alignItems="center" justifyContent="space-between">
+        <XStack alignItems="center" gap={4}>
+          <Coins size={16} />
+          <Paragraph fontSize={14}>{format_number(_score ?? 0)}</Paragraph>
         </XStack>
         <XStack alignItems="center" gap={4}>
           <CalendarDays size={16} />
@@ -698,7 +707,7 @@ const index = () => {
   return (
     <ScreenWrapper
       refreshControl={
-        <RefreshControl refreshing={isRefetching} onRefresh={refetch} />
+        <RefreshControl refreshing={!!isRefetching} onRefresh={refetch} />
       }
     >
       {_content}

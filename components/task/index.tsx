@@ -1,20 +1,26 @@
 import React from "react";
 import { Dimensions, Pressable, StyleSheet } from "react-native";
 import { Paragraph, XStack, YStack } from "tamagui";
-import { Timer, Users, CalendarDays } from "@tamagui/lucide-icons";
+import { Timer, Users, CalendarDays, Coins } from "@tamagui/lucide-icons";
 import { GAP } from "@/constants/Dimensions";
 import { router } from "expo-router";
 import { CommunityTaskType } from "@/types/apis";
 import Avatar from "../ui/Avatar";
 import { formatDistance } from "date-fns";
 import MediaGallery from "../ui/MediaGallery";
+import { format_number } from "@/utils/numbers";
 
 const { width } = Dimensions.get("screen");
 
 const Task = ({ ...props }: CommunityTaskType) => {
   const _now = React.useMemo(() => new Date(), []);
   const _task_location_label = props?.is_remote ? "Remote" : "Athlone";
-
+  const _score = React.useMemo(() => {
+    return props.score_breakdown?.reduce(
+      (acc, item) => acc + (item?.score ?? 0),
+      0
+    );
+  }, [props.score_breakdown]);
   const _navigate_to_dedicated_route = () =>
     router.push({
       pathname: "/community-tasks/[id]",
@@ -68,6 +74,12 @@ const Task = ({ ...props }: CommunityTaskType) => {
           <XStack alignItems="center" gap={4}>
             <Users size={16} />
             <Paragraph fontSize={14}>{props.volunteers_required}</Paragraph>
+          </XStack>
+        </XStack>
+        <XStack alignItems="center" justifyContent="space-between">
+          <XStack alignItems="center" gap={4}>
+            <Coins size={16} />
+            <Paragraph fontSize={14}>{format_number(_score)}</Paragraph>
           </XStack>
           <XStack alignItems="center" gap={4}>
             <CalendarDays size={16} />

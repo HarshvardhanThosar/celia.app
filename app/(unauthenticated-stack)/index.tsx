@@ -29,6 +29,7 @@ import storage, { STORAGE_KEYS } from "@/utils/storage";
 import Toast, { ToastType } from "@/utils/toasts";
 import mixpanel from "@/services/mixpanel";
 import MixpanelEvents from "@/services/mixpanel-events";
+import useProfile from "@/hooks/useProfile";
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -127,6 +128,7 @@ type FormData = yup.InferType<typeof schema>;
 
 const login = () => {
   const { set } = Auth.useAuth();
+  const { data: user, refetch: refetch_profile } = useProfile();
   const [secureTextEntry, setSecureTextEntry] = React.useState<boolean>(true);
   const form = useForm({
     defaultValues: {
@@ -168,7 +170,7 @@ const login = () => {
         const _profile_data = _profile_response.data.data;
         Toast.show(_data.message, ToastType.SUCCESS);
         set(_profile_data);
-
+        refetch_profile();
         mixpanel.identify(_profile_data._id);
         mixpanel.getPeople().set("$name", _profile_data.name);
         mixpanel.getPeople().set("$email", _profile_data.email);

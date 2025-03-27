@@ -290,11 +290,7 @@ const Register = () => {
                 icon={isSubmitting ? () => <Spinner /> : undefined}
                 mt={GAP * 1.5}
               >
-                {isSubmitting ? (
-                  <Spinner />
-                ) : (
-                  <Button.Text>Register</Button.Text>
-                )}
+                <Button.Text>Register</Button.Text>
               </Button>
             </Form.Trigger>
           </Form>

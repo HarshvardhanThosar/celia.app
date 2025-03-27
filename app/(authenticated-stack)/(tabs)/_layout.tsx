@@ -6,10 +6,11 @@ import AppHeaderBackground from "@/components/app-header-background";
 import Octicons from "@expo/vector-icons/Octicons";
 import { Avatar, H5, Paragraph } from "tamagui";
 import { useThemeColor } from "@/hooks/useThemeColor";
-import Auth from "@/context/auth.context";
+import useProfile from "@/hooks/useProfile";
 
 const TabsLayout = () => {
-  const { data: user } = Auth.useAuth();
+  const { data: user } = useProfile();
+  console.log(user);
   const background_colors = {
     light: "#F4F7F5",
     dark: "#26261A",

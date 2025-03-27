@@ -1,5 +1,5 @@
 import React from "react";
-import { StyleSheet } from "react-native";
+import { RefreshControl, StyleSheet } from "react-native";
 import { GAP } from "@/constants/Dimensions";
 import {
   Label,
@@ -24,21 +24,55 @@ import {
 import DateTimePicker from "@/components/DatePicker";
 import CheckboxWithLabel from "@/components/CheckboxWithLabel";
 import apis from "@/apis";
-import { OptionBody } from "@/types/apis";
 import { router } from "expo-router";
+import {
+  useHoursOptions,
+  useTaskTypesOptions,
+  useVolunteersCountOptions,
+} from "@/hooks/useFormValidationOptions";
 
 const index = () => {
-  const [hours_options, set_hours_options] = React.useState<OptionBody[]>([]);
-  const [task_types_options, set_task_types_options] = React.useState<
-    OptionBody[]
-  >([]);
-  const [volunteers_count_options, set_volunteers_count_options] =
-    React.useState<OptionBody[]>([]);
-  const [_is_loaded, set_is_loaded] = React.useState(false);
+  const {
+    data: hours_options,
+    isLoading: is_hours_options_loading,
+    refetch: refetch_hours_options,
+  } = useHoursOptions();
+  const {
+    data: task_types_options,
+    isLoading: is_task_types_options_loading,
+    refetch: refetch_task_types_options,
+  } = useTaskTypesOptions();
+  const {
+    data: volunteers_count_options,
+    isLoading: is_volunteers_count_options_loading,
+    refetch: refetch_volunteers_count_options,
+  } = useVolunteersCountOptions();
+  const is_loading =
+    is_hours_options_loading ||
+    is_task_types_options_loading ||
+    is_volunteers_count_options_loading;
+
+  const _is_loaded = React.useMemo(
+    () =>
+      !!hours_options?.length &&
+      !!task_types_options?.length &&
+      !!volunteers_count_options?.length,
+    [hours_options, task_types_options, volunteers_count_options]
+  );
 
   const today = React.useMemo(() => new Date(), []);
   const defaultStart = today;
   const defaultEnd = new Date(today.getTime() + 24 * 60 * 60 * 1000);
+
+  const refetch = React.useCallback(() => {
+    refetch_hours_options();
+    refetch_task_types_options();
+    refetch_volunteers_count_options();
+  }, [
+    refetch_hours_options,
+    refetch_task_types_options,
+    refetch_volunteers_count_options,
+  ]);
 
   const schema = yup
     .object({
@@ -80,7 +114,8 @@ const index = () => {
     formState: { isSubmitting, isValid, isLoading, isValidating },
   } = useForm({
     defaultValues: {
-      task_description: "Coordinating emergency relief...",
+      task_description:
+        "Coordinating emergency relief, distributing supplies, setting up shelters, and helping victims in disaster-affected areas.",
       hours_required_per_day: 0,
       participants_required: 0,
       start_datetime: defaultStart,
@@ -94,32 +129,6 @@ const index = () => {
   const isSingleDay = watch("is_single_day");
   const startDatetime = watch("start_datetime");
   const hoursRequired = watch("hours_required_per_day");
-
-  React.useEffect(() => {
-    let isMounted = true;
-    (async () => {
-      try {
-        const result = await Promise.all([
-          apis.fetch_hour_options(),
-          apis.fetch_volunteers_count(),
-          apis.fetch_task_types(),
-        ]);
-
-        if (isMounted && result) {
-          const [_hours_options, _volunteers_options, _task_types] = result;
-          set_hours_options(_hours_options.data.data);
-          set_volunteers_count_options(_volunteers_options.data.data);
-          set_task_types_options(_task_types.data.data);
-          set_is_loaded(true);
-        }
-      } catch (error) {
-        console.log("Error fetching options", error);
-      }
-    })();
-    return () => {
-      isMounted = false;
-    };
-  }, []);
 
   React.useEffect(() => {
     if (isSingleDay) {
@@ -153,8 +162,6 @@ const index = () => {
       is_remote: true,
       priority: "medium",
     };
-    console.log(JSON.stringify(data, null, 2));
-
     try {
       const _response = await apis.create_task(_request_body);
       Toast.show(_response.data.message, ToastType.SUCCESS);
@@ -169,6 +176,10 @@ const index = () => {
       );
     }
   };
+
+  const _refreshControl = (
+    <RefreshControl refreshing={is_loading} onRefresh={refetch} />
+  );
 
   if (!_is_loaded) {
     return (
@@ -186,7 +197,7 @@ const index = () => {
   }
 
   return (
-    <ScreenWrapper scrollable>
+    <ScreenWrapper scrollable refreshControl={_refreshControl}>
       <YStack style={styles.screen} gap={GAP * 1.5} px={GAP}>
         <Form onSubmit={handleSubmit(onSubmit)} gap={GAP}>
           <Controller
@@ -214,79 +225,87 @@ const index = () => {
           />
 
           <XStack gap={GAP}>
-            <Controller
-              control={control}
-              rules={{ required: true }}
-              render={({ field: { onChange, value }, fieldState }) => (
-                <YStack flex={1}>
-                  <Label htmlFor="participants_required">
-                    Number of participants
-                  </Label>
-                  <SelectInput
-                    label="Number of participants"
-                    placeHolder="Number of participants"
-                    id="participants_required"
-                    onChange={onChange}
-                    options={volunteers_count_options}
-                    value={`${value}`}
-                    native
-                  />
-                  {fieldState.error && (
-                    <Label color="$red10Dark">{fieldState.error.message}</Label>
-                  )}
-                </YStack>
-              )}
-              name="participants_required"
-            />
-            <Controller
-              control={control}
-              rules={{ required: true }}
-              render={({ field: { onChange, value }, fieldState }) => (
-                <YStack flex={1}>
-                  <Label htmlFor="hours_required_per_day">
-                    Hours required per day
-                  </Label>
-                  <SelectInput
-                    label="Hours required"
-                    placeHolder="Hours required"
-                    id="hours_required_per_day"
-                    onChange={onChange}
-                    options={hours_options}
-                    value={`${value}`}
-                    native
-                  />
-                  {fieldState.error && (
-                    <Label color="$red10Dark">{fieldState.error.message}</Label>
-                  )}
-                </YStack>
-              )}
-              name="hours_required_per_day"
-            />
-          </XStack>
-
-          <Controller
-            control={control}
-            rules={{ required: true }}
-            render={({ field: { onChange, value }, fieldState }) => (
-              <YStack>
-                <Label htmlFor="task_category">Task category</Label>
-                <SelectInput
-                  label="Task category"
-                  placeHolder="Task category"
-                  id="task_category"
-                  onChange={onChange}
-                  options={task_types_options}
-                  value={value}
-                  native
-                />
-                {fieldState.error && (
-                  <Label color="$red10Dark">{fieldState.error.message}</Label>
+            {volunteers_count_options ? (
+              <Controller
+                control={control}
+                rules={{ required: true }}
+                render={({ field: { onChange, value }, fieldState }) => (
+                  <YStack flex={1}>
+                    <Label htmlFor="participants_required">
+                      Number of participants
+                    </Label>
+                    <SelectInput
+                      label="Number of participants"
+                      placeHolder="Number of participants"
+                      id="participants_required"
+                      onChange={onChange}
+                      options={volunteers_count_options}
+                      value={`${value}`}
+                      native
+                    />
+                    {fieldState.error && (
+                      <Label color="$red10Dark">
+                        {fieldState.error.message}
+                      </Label>
+                    )}
+                  </YStack>
                 )}
-              </YStack>
-            )}
-            name="task_category"
-          />
-
+                name="participants_required"
+              />
+            ) : null}
+            {hours_options ? (
+              <Controller
+                control={control}
+                rules={{ required: true }}
+                render={({ field: { onChange, value }, fieldState }) => (
+                  <YStack flex={1}>
+                    <Label htmlFor="hours_required_per_day">
+                      Hours required per day
+                    </Label>
+                    <SelectInput
+                      label="Hours required"
+                      placeHolder="Hours required"
+                      id="hours_required_per_day"
+                      onChange={onChange}
+                      options={hours_options}
+                      value={`${value}`}
+                      native
+                    />
+                    {fieldState.error && (
+                      <Label color="$red10Dark">
+                        {fieldState.error.message}
+                      </Label>
+                    )}
+                  </YStack>
+                )}
+                name="hours_required_per_day"
+              />
+            ) : null}
+          </XStack>
+          {task_types_options ? (
+            <Controller
+              control={control}
+              rules={{ required: true }}
+              render={({ field: { onChange, value }, fieldState }) => (
+                <YStack>
+                  <Label htmlFor="task_category">Task category</Label>
+                  <SelectInput
+                    label="Task category"
+                    placeHolder="Task category"
+                    id="task_category"
+                    onChange={onChange}
+                    options={task_types_options}
+                    value={value}
+                    native
+                  />
+                  {fieldState.error && (
+                    <Label color="$red10Dark">{fieldState.error.message}</Label>
+                  )}
+                </YStack>
+              )}
+              name="task_category"
+            />
+          ) : null}
           <Controller
             control={control}
             name="is_single_day"

@@ -1,5 +1,5 @@
 import React from "react";
-import { StyleSheet, FlatList, Pressable } from "react-native";
+import { StyleSheet, FlatList, Pressable, RefreshControl } from "react-native";
 import {
   Button,
   H1,
@@ -26,21 +26,53 @@ import { router } from "expo-router";
 import Avatar from "@/components/ui/Avatar";
 import Auth from "@/context/auth.context";
 import useCommunityTask from "@/hooks/useCommunityTasks";
+import apis from "@/apis";
+import useProfile from "@/hooks/useProfile";
+import { useFetchCoupons } from "@/hooks/useCoupons";
 
 const index = () => {
   const skip = 0,
     limit = 10;
-  // const _navigate_to_view_all_community_tasks = () =>
-  //   router.push("/(authenticated-stack)/community-tasks/listing");
-  // const _navigate_to_view_all_coupons = () =>
-  //   router.push("/(authenticated-stack)/coupons/listing");
-  const { data: community_tasks_response } = useCommunityTask({ skip, limit });
-  const tasks = community_tasks_response?.data.data;
-  const { data: user } = Auth.useAuth();
+  const _navigate_to_view_all_community_tasks = () =>
+    router.push("/(authenticated-stack)/community-tasks/listing");
+  const _navigate_to_view_all_coupons = () =>
+    router.push("/(authenticated-stack)/coupons/listing");
+  const {
+    data: tasks_response,
+    isLoading: is_loading_task_response,
+    refetch: refetch_tasks,
+  } = useCommunityTask({ skip, limit });
+  const {
+    data: user,
+    isLoading: is_loading_profile,
+    refetch: refetch_user,
+  } = useProfile();
+  const {
+    data: coupons,
+    isLoading: is_loading_coupons,
+    refetch: refetch_coupons,
+  } = useFetchCoupons({ limit, skip });
+  const is_refreshing =
+    !!is_loading_task_response || !!is_loading_profile || !!is_loading_coupons;
+
+  console.log({ is_loading_task_response });
+  console.log({ is_loading_profile });
+  console.log({ is_loading_coupons });
+
+  const tasks = tasks_response?.data;
+  const refetch = React.useCallback(() => {
+    refetch_tasks();
+    refetch_user();
+    refetch_coupons();
+  }, [refetch_tasks, refetch_user, refetch_coupons]);
+
+  const _refreshControl = (
+    <RefreshControl refreshing={is_refreshing} onRefresh={refetch} />
+  );
 
   return (
     <React.Fragment>
-      <ScreenWrapper>
+      <ScreenWrapper refreshControl={_refreshControl}>
         <YStack style={styles.screen} gap={GAP * 1.5} pb={GAP * 4}>
           <XStack
             style={styles.heading1_container}
@@ -216,18 +248,18 @@ const index = () => {
           <YStack gap={GAP * 0.5}>
             <XStack px={GAP} justifyContent="space-between" alignItems="center">
               <H5 textTransform="uppercase">Coupons</H5>
-              {/* <Pressable onPress={_navigate_to_view_all_coupons}>
+              <Pressable onPress={_navigate_to_view_all_coupons}>
                 <H6 textTransform="uppercase" textDecorationLine="underline">
                   View all
                 </H6>
-              </Pressable> */}
+              </Pressable>
             </XStack>
             <FlatList
               horizontal
               persistentScrollbar
               showsHorizontalScrollIndicator={false}
-              data={[1, 1, 1, 1, 1, 1]}
-              renderItem={Coupon}
+              data={coupons}
+              renderItem={({ index, item }) => <Coupon key={index} {...item} />}
               ListHeaderComponent={<XStack width={GAP} />}
               ListFooterComponent={<XStack width={GAP} />}
               ItemSeparatorComponent={() => <XStack width={GAP} />}
@@ -241,11 +273,11 @@ const index = () => {
                 alignItems="center"
               >
                 <H5 textTransform="uppercase">Community Tasks</H5>
-                {/* <Pressable onPress={_navigate_to_view_all_community_tasks}>
+                <Pressable onPress={_navigate_to_view_all_community_tasks}>
                   <H6 textTransform="uppercase" textDecorationLine="underline">
                     View all
                   </H6>
-                </Pressable> */}
+                </Pressable>
               </XStack>
               <FlatList
                 horizontal

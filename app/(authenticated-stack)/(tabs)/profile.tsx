@@ -27,6 +27,7 @@ import { format_number } from "@/utils/numbers";
 import { Link } from "expo-router";
 import * as Clipboard from "expo-clipboard";
 import Toast from "@/utils/toasts";
+import useProfile from "@/hooks/useProfile";
 
 const StatTile = ({
   icon,
@@ -78,8 +79,8 @@ const StatTile = ({
 };
 
 const index = () => {
-  const [is_refreshing, set_is_refresh] = React.useState(false);
-  const { data: user, set, reset, isLoading } = Auth.useAuth();
+  const { reset, isLoading, isFetching } = Auth.useAuth();
+  const { data: user, refetch } = useProfile();
   const _id = React.useMemo(() => user?._id, [user]);
   const _score = React.useMemo(() => format_number(user?.score ?? 0), [user]);
   const _tasks_participated_count = React.useMemo(
@@ -104,29 +105,20 @@ const index = () => {
     unauthenticate_instance();
     reset();
   }, []);
-  const _fetch_user_profile = React.useCallback(async () => {
-    apis
-      .fetch_logged_in_user_profile()
-      .then((response) => {
-        const _profile = response.data.data;
-        set(_profile);
-      })
-      .finally(() => set_is_refresh(false));
-  }, []);
 
   const _copy_id = React.useCallback(async () => {
     if (!_id) return;
     await Clipboard.setStringAsync(_id);
   }, [_id]);
+  const _onRefresh = () => {
+    refetch();
+  };
 
-  const _refreshControl = React.useMemo(
-    () => (
-      <RefreshControl
-        refreshing={is_refreshing}
-        onRefresh={_fetch_user_profile}
-      />
-    ),
-    []
+  const _refreshControl = (
+    <RefreshControl
+      refreshing={isFetching || isLoading}
+      onRefresh={_onRefresh}
+    />
   );
 
   return (
@@ -137,7 +129,7 @@ const index = () => {
             <H6>Hi, </H6>
             <H3>{user?.name}</H3>
           </YStack>
-          <Button size="$3" p="$2" onPress={_logout}>
+          <Button size="$3" p="$2" onPress={_logout} disabled={isLoading}>
             {isLoading ? () => <Spinner /> : <PowerOff size="$1" />}
           </Button>
         </XStack>
