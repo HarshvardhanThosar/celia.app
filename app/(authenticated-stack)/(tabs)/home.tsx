@@ -1,12 +1,17 @@
 import React from "react";
-import { StyleSheet, FlatList, Pressable, RefreshControl } from "react-native";
+import {
+  StyleSheet,
+  FlatList,
+  Pressable,
+  RefreshControl,
+  Platform,
+} from "react-native";
 import {
   Button,
   H1,
   H2,
   H3,
   H5,
-  H6,
   Image,
   Paragraph,
   XStack,
@@ -24,13 +29,15 @@ import { GAP } from "@/constants/Dimensions";
 import { format_number } from "@/utils/numbers";
 import { router } from "expo-router";
 import Avatar from "@/components/ui/Avatar";
-import Auth from "@/context/auth.context";
 import useCommunityTask from "@/hooks/useCommunityTasks";
-import apis from "@/apis";
 import useProfile from "@/hooks/useProfile";
 import { useFetchCoupons } from "@/hooks/useCoupons";
 
 const index = () => {
+  const AbrilFatfaceFontName = Platform.select({
+    ios: "AbrilFatface",
+    android: "AbrilFatface",
+  });
   const skip = 0,
     limit = 1000;
   // const _navigate_to_view_all_community_tasks = () =>
@@ -82,7 +89,7 @@ const index = () => {
               <H1
                 fontWeight="500"
                 style={{
-                  fontFamily: "AbrilFatface",
+                  fontFamily: AbrilFatfaceFontName,
                   letterSpacing: 1,
                 }}
               >
@@ -128,15 +135,15 @@ const index = () => {
               </XStack>
             </Pressable>
           </XStack>
-          <YStack px={GAP} py={GAP * 2} gap={GAP} backgroundColor="#44463e">
+          <YStack px={GAP} py={GAP * 2} gap={GAP} backgroundColor="#33352E">
             <YStack gap={GAP / 2}>
               <H2
                 fontSize={16}
                 lineHeight={16}
+                fontWeight="500"
                 color="#fff"
                 style={{
-                  fontFamily: "AbrilFatface",
-                  fontWeight: "bold",
+                  fontFamily: AbrilFatfaceFontName,
                   letterSpacing: 1,
                 }}
               >
@@ -145,10 +152,10 @@ const index = () => {
               <H3
                 fontSize={32}
                 lineHeight={32}
+                fontWeight="500"
                 color="#fff"
                 style={{
-                  fontFamily: "AbrilFatface",
-                  fontWeight: "bold",
+                  fontFamily: AbrilFatfaceFontName,
                   letterSpacing: 1,
                 }}
               >
@@ -160,9 +167,9 @@ const index = () => {
                 fontSize={16}
                 color="#fff"
                 lineHeight={16}
+                fontWeight="500"
                 style={{
-                  fontFamily: "AbrilFatface",
-                  fontWeight: "bold",
+                  fontFamily: AbrilFatfaceFontName,
                   letterSpacing: 1,
                 }}
               >
@@ -172,9 +179,9 @@ const index = () => {
                 fontSize={32}
                 lineHeight={32}
                 color="#fff"
+                fontWeight="500"
                 style={{
-                  fontFamily: "AbrilFatface",
-                  fontWeight: "bold",
+                  fontFamily: AbrilFatfaceFontName,
                   letterSpacing: 1,
                 }}
               >
@@ -206,10 +213,10 @@ const index = () => {
                 <H2
                   fontSize={20}
                   lineHeight={20}
-                  color="#44463e"
+                  color="#33352E"
+                  fontWeight="500"
                   style={{
-                    fontFamily: "AbrilFatface",
-                    fontWeight: "bold",
+                    fontFamily: AbrilFatfaceFontName,
                     letterSpacing: 1,
                   }}
                 >
@@ -218,10 +225,10 @@ const index = () => {
                 <H3
                   fontSize={32}
                   lineHeight={32}
-                  color="#44463e"
+                  color="#33352E"
+                  fontWeight="500"
                   style={{
-                    fontFamily: "AbrilFatface",
-                    fontWeight: "bold",
+                    fontFamily: AbrilFatfaceFontName,
                     letterSpacing: 1,
                   }}
                 >
@@ -296,6 +303,7 @@ const index = () => {
         icon={<Plus color="#c5a57d" size="$2" />}
         size="$5"
         position="absolute"
+        onPress={() => router.navigate("/create-community-task")}
         r={GAP * 1.5}
         b={GAP * 1.5}
         aspectRatio={1}

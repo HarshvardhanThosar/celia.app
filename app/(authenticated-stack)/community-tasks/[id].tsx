@@ -45,6 +45,8 @@ import Avatar from "@/components/ui/Avatar";
 import MediaGallery from "@/components/ui/MediaGallery";
 import { Square } from "tamagui";
 import useProfile from "@/hooks/useProfile";
+import mixpanel from "@/services/mixpanel";
+import MixpanelEvents from "@/services/mixpanel-events";
 
 // TODO:
 // 1. Show task type and skills in the screen
@@ -125,7 +127,8 @@ const index = () => {
   );
   const _score = React.useMemo(() => {
     return data?.score_breakdown?.reduce(
-      (acc, item) => acc + (item?.score ?? 0),
+      (acc, item) =>
+        item.key != "random_hook" ? acc + (item?.score ?? 0) : acc,
       0
     );
   }, [data?.score_breakdown]);
@@ -138,6 +141,9 @@ const index = () => {
       refetch();
       const message = _response?.data?.message ?? "Request sent successfully!";
       Toast.show(message, ToastType.SUCCESS);
+      mixpanel.track(MixpanelEvents.task_participate, {
+        id: auth?._id,
+      });
     } catch (error: any) {
       const error_message =
         error?.response?.data?.message ||
@@ -186,6 +192,9 @@ const index = () => {
       });
       const message =
         _response?.data?.message ?? "Feedback submitted successfully!";
+      mixpanel.track(MixpanelEvents.task_complete, {
+        id: auth?._id,
+      });
       Toast.show(message, ToastType.SUCCESS);
     } catch (error: any) {
       const error_message =
@@ -358,7 +367,6 @@ const index = () => {
       </XStack>
       <Paragraph px={GAP}>{data?.description}</Paragraph>
       <MediaGallery media={data?.media} variant="list" />
-
       <XStack px={GAP} alignItems="center" justifyContent="space-between">
         <XStack alignItems="center" gap={4}>
           <Timer size={16} />

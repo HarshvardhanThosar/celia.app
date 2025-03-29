@@ -22,6 +22,8 @@ import { Link, router } from "expo-router";
 import Toast, { ToastType } from "@/utils/toasts";
 import CheckboxWithLabel from "@/components/CheckboxWithLabel";
 import { Eye, EyeOff } from "@tamagui/lucide-icons";
+import mixpanel from "@/services/mixpanel";
+import MixpanelEvents from "@/services/mixpanel-events";
 
 const schema = yup.object({
   firstName: yup.string().required("First name is required!"),
@@ -91,8 +93,10 @@ const Register = () => {
         password,
         tnc_accepted: tnc_accepted ?? false,
       });
-
       Toast.show(response.data.message, ToastType.SUCCESS);
+      mixpanel.track(MixpanelEvents.user_register, {
+        id: response.data.data.id,
+      });
       const timeout = setTimeout(() => {
         router.push("/");
       }, 500);

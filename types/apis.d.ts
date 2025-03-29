@@ -20,7 +20,7 @@ export type CommunityTaskType = {
   starts_at: string;
   completes_at: string;
   is_remote: boolean;
-  location: any;
+  location?: LocationType;
   score_breakdown: ScoreBreakdown[];
   daily_attendance_codes: DailyAttendanceCodes;
   attendance_log: AttendanceLog;
@@ -192,6 +192,8 @@ export type CreateTaskFormType = {
   completes_at: Date | string | number;
   task_type: string;
   is_remote?: boolean;
+  location?: LocationType;
+  priority: string;
 };
 
 export type CreateTaskRequestBodyType = FormDataType<CreateTaskFormType>;

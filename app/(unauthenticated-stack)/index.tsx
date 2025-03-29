@@ -189,6 +189,9 @@ const login = () => {
                   JSON.stringify(error, null, 2)
                 )
               );
+            mixpanel.track(MixpanelEvents.user_push_token_register, {
+              id: _profile_data._id,
+            });
           })
           .catch(async (error) => {
             console.log(

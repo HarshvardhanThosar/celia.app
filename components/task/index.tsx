@@ -17,7 +17,8 @@ const Task = ({ ...props }: CommunityTaskType) => {
   const _task_location_label = props?.is_remote ? "Remote" : "Athlone";
   const _score = React.useMemo(() => {
     return props.score_breakdown?.reduce(
-      (acc, item) => acc + (item?.score ?? 0),
+      (acc, item) =>
+        item.key != "random_hook" ? acc + (item?.score ?? 0) : acc,
       0
     );
   }, [props.score_breakdown]);

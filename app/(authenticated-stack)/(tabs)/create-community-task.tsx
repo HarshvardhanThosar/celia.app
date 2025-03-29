@@ -30,8 +30,14 @@ import {
   useTaskTypesOptions,
   useVolunteersCountOptions,
 } from "@/hooks/useFormValidationOptions";
+import mixpanel from "@/services/mixpanel";
+import MixpanelEvents from "@/services/mixpanel-events";
+import Auth from "@/context/auth.context";
+import { CreateTaskFormType } from "@/types/apis";
 
 const index = () => {
+  // const [is_remote, set_is_remote] = React.useState(true);
+  const { data: auth } = Auth.useAuth();
   const {
     data: hours_options,
     isLoading: is_hours_options_loading,
@@ -152,7 +158,7 @@ const index = () => {
       task_description,
     } = data;
 
-    const _request_body = {
+    const _request_body: CreateTaskFormType = {
       description: task_description,
       hours_required_per_day,
       volunteers_required: participants_required,
@@ -162,9 +168,18 @@ const index = () => {
       is_remote: true,
       priority: "medium",
     };
+
+    // if (!is_remote) {
+    //   _request_body.is_remote = false;
+    //   _request_body.location = { latitude: 987, longitude: 678 };
+    // }
+
     try {
       const _response = await apis.create_task(_request_body);
       Toast.show(_response.data.message, ToastType.SUCCESS);
+      mixpanel.track(MixpanelEvents.task_create, {
+        id: auth?._id,
+      });
       router.push({
         pathname: "/community-tasks/[id]",
         params: { id: _response.data.data._id },
@@ -306,21 +321,34 @@ const index = () => {
               name="task_category"
             />
           ) : null}
-          <Controller
-            control={control}
-            name="is_single_day"
-            defaultValue={true}
-            render={({ field: { value, onChange } }) => (
-              <XStack gap={GAP} alignItems="center">
-                <CheckboxWithLabel
-                  size="$4"
-                  defaultChecked={!!value}
-                  onCheckedChange={(_state) => onChange(_state ?? false)}
-                  label="Is same day task"
-                />
-              </XStack>
-            )}
-          />
+          <XStack gap={GAP} alignItems="center">
+            <XStack flex={1}>
+              <Controller
+                control={control}
+                name="is_single_day"
+                defaultValue={true}
+                render={({ field: { value, onChange } }) => (
+                  <XStack gap={GAP} alignItems="center">
+                    <CheckboxWithLabel
+                      size="$4"
+                      defaultChecked={!!value}
+                      onCheckedChange={(_state) => onChange(_state ?? false)}
+                      label="Is same day task?"
+                    />
+                  </XStack>
+                )}
+              />
+            </XStack>
+            {/* <XStack flex={1} gap={GAP} alignItems="center">
+              <CheckboxWithLabel
+                size="$4"
+                defaultChecked={!!is_remote}
+                onCheckedChange={(_state) => set_is_remote(!_state)}
+                label="Is the task remote?"
+              />
+            </XStack> */}
+          </XStack>
+
           <Controller
             control={control}
             name="start_datetime"

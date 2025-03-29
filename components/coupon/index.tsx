@@ -28,17 +28,21 @@ const Coupon = ({ ...props }: RetailItem) => {
     <Pressable onPress={_navigate_to_dedicated_route}>
       <YStack
         style={styles.coupon_container}
-        backgroundColor="$background"
+        // backgroundColor="$background"
         borderWidth="$0.25"
-        borderRadius="$6"
         borderColor="$color"
-        p={GAP}
+        borderRadius="$6"
         gap={GAP}
+        pb={GAP}
+        overflow="hidden"
       >
         <Image
           w="100%"
           aspectRatio={COUPON_CROP_IMAGE_ASPECT_RATIO}
-          borderRadius={GAP / 2}
+          borderTopLeftRadius="$6"
+          borderTopRightRadius="$6"
+          borderBottomWidth="$0.25"
+          borderColor="$color"
           alt=""
           objectFit="contain"
           background="$background"
@@ -46,27 +50,23 @@ const Coupon = ({ ...props }: RetailItem) => {
             uri: props.thumbnail,
           }}
         />
-        <YStack gap={5}>
+        <YStack gap={5} px={GAP}>
           <Paragraph numberOfLines={1}>{props.name}</Paragraph>
-          <Paragraph fontSize={12}>
-            {props.retailer.name} • {props.retailer.store}
-          </Paragraph>
+          <XStack alignItems="center" gap={GAP / 4}>
+            <CalendarDays size={16} />
+            <Paragraph>{_days_from_label}</Paragraph>
+          </XStack>
         </YStack>
-        <XStack
-          alignItems="center"
-          justifyContent="space-between"
-          gap={GAP * 2}
-        >
+        <XStack justifyContent="space-between" gap={GAP} px={GAP}>
           <XStack alignItems="center" gap={GAP / 4} flex={1}>
             <Coins size={14} />
             <Paragraph numberOfLines={1} fontSize={14}>
               {format_number(props.points)}
             </Paragraph>
           </XStack>
-          <XStack alignItems="center" gap={GAP / 4}>
-            <CalendarDays size={16} />
-            <Paragraph>{_days_from_label}</Paragraph>
-          </XStack>
+          <Paragraph fontSize={12}>
+            {props.retailer.name} • {props.retailer.store}
+          </Paragraph>
         </XStack>
       </YStack>
     </Pressable>

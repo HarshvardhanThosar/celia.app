@@ -9,8 +9,12 @@ import { useFetchCouponById } from "@/hooks/useCouponById";
 import ScreenWrapper from "@/components/screen-wrapper";
 import { COUPON_CROP_IMAGE_ASPECT_RATIO, GAP } from "@/constants/Dimensions";
 import { Image, XStack, YStack, Paragraph, Spinner, H5 } from "tamagui";
+import mixpanel from "@/services/mixpanel";
+import MixpanelEvents from "@/services/mixpanel-events";
+import Auth from "@/context/auth.context";
 
 const CouponDetailScreen = () => {
+  const { data: auth } = Auth.useAuth();
   const params = useLocalSearchParams();
   const id = Array.isArray(params.id) ? params.id[0] : params.id;
 
@@ -21,6 +25,14 @@ const CouponDetailScreen = () => {
   const _days_from_label = data?.expiry_date
     ? formatDistance(data.expiry_date, _now, { addSuffix: true })
     : "";
+
+  React.useEffect(() => {
+    if (data?._id) {
+      mixpanel.track(MixpanelEvents.retail_item_view, {
+        id: auth?._id,
+      });
+    }
+  }, [data?._id]);
 
   if (isLoading) {
     return (

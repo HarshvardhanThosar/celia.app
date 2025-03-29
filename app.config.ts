@@ -52,10 +52,5 @@ export default {
     experiments: {
       typedRoutes: true,
     },
-    fonts: [
-      {
-        asset: "./assets/fonts/AbrilFatface-Regular.ttf",
-      },
-    ],
   },
 };

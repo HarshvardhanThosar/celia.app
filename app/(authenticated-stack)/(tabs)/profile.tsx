@@ -21,7 +21,6 @@ import {
   Info,
   PowerOff,
   SquareArrowOutUpRight,
-  X,
 } from "@tamagui/lucide-icons";
 import apis from "@/apis";
 import { unauthenticate_instance } from "@/apis/instance";
@@ -29,7 +28,8 @@ import { format_number } from "@/utils/numbers";
 import { Link } from "expo-router";
 import * as Clipboard from "expo-clipboard";
 import useProfile from "@/hooks/useProfile";
-import { ProfileSkill } from "@/types/apis";
+import mixpanel from "@/services/mixpanel";
+import MixpanelEvents from "@/services/mixpanel-events";
 
 const StatTile = ({
   icon,
@@ -100,6 +100,9 @@ const index = () => {
 
   const _logout = React.useCallback(async () => {
     try {
+      mixpanel.track(MixpanelEvents.user_logout, {
+        id: user?._id,
+      });
       await apis.logout();
     } catch (error) {
       console.log("Error logging out", JSON.stringify(error, null, 2));
